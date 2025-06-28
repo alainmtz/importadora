@@ -36,7 +36,7 @@ function InventarioSucursal({ refrescar }) {
   }, [sucursalId, refrescar]);
 
   return (
-    <Paper elevation={3} sx={{ p: 4, mb: 4, maxWidth: 950, mx: 'auto' }}>
+    <Paper elevation={3} sx={{ p: 4, mb: 4, width: '100%', maxWidth: '100%', mx: 'auto' }}>
       <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
         Inventario por Sucursal
       </Typography>
@@ -74,9 +74,10 @@ function InventarioSucursal({ refrescar }) {
         borderRadius: 2,
         boxShadow: 1,
         backgroundColor: '#fafbfc',
-        p: 2
+        p: 2,
+        width: '100%'
       }}>
-        <Table size="small" sx={{ minWidth: 600 }}>
+        <Table size="small" sx={{ minWidth: 600, width: '100%' }}>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
               <TableCell sx={{ fontWeight: 'bold' }}>Producto</TableCell>
