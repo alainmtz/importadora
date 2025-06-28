@@ -65,7 +65,7 @@ function AgregarProducto({ onProductoAgregado, productoEditar, onEditFinish }) {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 3, maxWidth: 500 }}>
+    <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: 950, width: '100%', mx: 'auto' }}>
       <Typography variant="h6" gutterBottom>
         {productoEditar ? 'Editar Producto' : 'Agregar Producto'}
       </Typography>

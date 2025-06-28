@@ -51,7 +51,7 @@ function InventarioSucursal({ refrescar }) {
                 onChange={e => setSucursalId(e.target.value)}
                 displayEmpty
                 renderValue={selected => {
-                  if (!selected) return <span style={{ color: '#aaa' }}>Seleccione una sucursal...</span>;
+                  if (!selected) return <span style={{ color: '#aaa' }}></span>;
                   const s = sucursales.find(s => s.id === selected);
                   return s ? `${s.nombre} (${s.tipo} - ${s.pais})` : '';
                 }}
