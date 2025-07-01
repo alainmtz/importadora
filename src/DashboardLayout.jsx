@@ -86,7 +86,7 @@ const DashboardLayout = () => {
       >
         {drawer}
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: { xs: 1, sm: 3 }, width: { sm: `calc(100% - ${drawerWidth}px)` } }}>
+      <Box component="main" sx={{ flexGrow: 1, p: { xs: 1, sm: 3 }, width: { sm: `calc(90% - ${drawerWidth}px)` } }}>
         <Toolbar />
         <Outlet />
       </Box>
