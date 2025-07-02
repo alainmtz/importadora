@@ -206,11 +206,22 @@ function Compras({ onCompraRealizada }) {
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth required>
+<<<<<<< HEAD
               <InputLabel>Sucursal destino</InputLabel>
               <Select
                 value={sucursalDestinoId}
                 label="Sucursal destino"
                 onChange={e => setSucursalDestinoId(e.target.value)}
+=======
+              <InputLabel id="sucursal-label">Sucursal</InputLabel>
+              <Select
+                id="sucursal"
+                name="sucursal"
+                labelId="sucursal-label"
+                value={sucursalId}
+                label="Sucursal"
+                onChange={e => setSucursalId(e.target.value)}
+>>>>>>> 26efad21b4dfab2c32d1a74b7c887c1532f8c92d
               >
                 <MenuItem value="">Seleccione sucursal</MenuItem>
                 {sucursales.map(s => (
@@ -229,9 +240,16 @@ function Compras({ onCompraRealizada }) {
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth required>
-              <InputLabel>Estado</InputLabel>
+              <InputLabel id="estado-label">Estado</InputLabel>
               <Select
+<<<<<<< HEAD
                 value={estadoEnvio}
+=======
+                id="estado"
+                name="estado"
+                labelId="estado-label"
+                value={estado}
+>>>>>>> 26efad21b4dfab2c32d1a74b7c887c1532f8c92d
                 label="Estado"
                 onChange={e => setEstadoEnvio(e.target.value)}
               >
@@ -262,6 +280,8 @@ function Compras({ onCompraRealizada }) {
             </Grid>
             <Grid item xs={6} sm={3}>
               <TextField
+                id="cantidad"
+                name="cantidad"
                 type="number"
                 label="Cantidad"
                 min={1}
@@ -272,6 +292,8 @@ function Compras({ onCompraRealizada }) {
             </Grid>
             <Grid item xs={6} sm={3}>
               <TextField
+                id="precio_unitario"
+                name="precio_unitario"
                 type="number"
                 label="Precio unitario"
                 min={0}
