@@ -145,8 +145,11 @@ function Compras({ onCompraRealizada }) {
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth required>
-              <InputLabel>Sucursal</InputLabel>
+              <InputLabel id="sucursal-label">Sucursal</InputLabel>
               <Select
+                id="sucursal"
+                name="sucursal"
+                labelId="sucursal-label"
                 value={sucursalId}
                 label="Sucursal"
                 onChange={e => setSucursalId(e.target.value)}
@@ -176,8 +179,11 @@ function Compras({ onCompraRealizada }) {
           </Grid> */}
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth required>
-              <InputLabel>Estado</InputLabel>
+              <InputLabel id="estado-label">Estado</InputLabel>
               <Select
+                id="estado"
+                name="estado"
+                labelId="estado-label"
                 value={estado}
                 label="Estado"
                 onChange={e => setEstado(e.target.value)}
@@ -209,6 +215,8 @@ function Compras({ onCompraRealizada }) {
             </Grid>
             <Grid item xs={6} sm={3}>
               <TextField
+                id="cantidad"
+                name="cantidad"
                 type="number"
                 label="Cantidad"
                 min={1}
@@ -219,6 +227,8 @@ function Compras({ onCompraRealizada }) {
             </Grid>
             <Grid item xs={6} sm={3}>
               <TextField
+                id="precio_unitario"
+                name="precio_unitario"
                 type="number"
                 label="Precio unitario"
                 min={0}
