@@ -90,14 +90,12 @@ function VentasSucursal({ onVentaRealizada }) {
     }
     setLoading(true);
     // Insertar venta
+    const clienteObj = { ...cliente };
     const { data: venta, error } = await supabase
       .from('ventas')
       .insert([{
         sucursal_id: sucursalId,
-        cliente_nombre: cliente.nombre,
-        cliente_direccion: cliente.direccion,
-        cliente_telefono: cliente.telefono,
-        cliente_identificacion: cliente.identificacion
+        cliente: JSON.stringify(clienteObj)
       }])
       .select()
       .single();

@@ -4,16 +4,7 @@ import {
 } from '@mui/material';
 import { MdMenu, MdInventory, MdStore, MdCompareArrows, MdShoppingCart, MdPointOfSale, MdBarChart } from 'react-icons/md';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-
-const menu = [
-  { text: 'Productos', icon: <MdInventory />, path: '/productos' },
-  { text: 'Sucursales', icon: <MdStore />, path: '/sucursales' },
-  { text: 'Inventario', icon: <MdInventory />, path: '/inventario' },
-  { text: 'Transferencias', icon: <MdCompareArrows />, path: '/transferencias' },
-  { text: 'Compras', icon: <MdShoppingCart />, path: '/compras' },
-  { text: 'Ventas', icon: <MdPointOfSale />, path: '/ventas' },
-  { text: 'Reportes', icon: <MdBarChart />, path: '/reportes' },
-];
+import { useUserRoles } from './hooks/useUserRoles'; // importa el hook
 
 const drawerWidth = 220;
 
@@ -22,6 +13,23 @@ const DashboardLayout = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, roles } = useUserRoles();
+
+  // Menú base
+  const baseMenu = [
+    { text: 'Productos', icon: <MdInventory />, path: '/productos' },
+    { text: 'Sucursales', icon: <MdStore />, path: '/sucursales' },
+    { text: 'Inventario', icon: <MdInventory />, path: '/inventario' },
+    { text: 'Transferencias', icon: <MdCompareArrows />, path: '/transferencias' },
+    { text: 'Compras', icon: <MdShoppingCart />, path: '/compras' },
+    { text: 'Ventas', icon: <MdPointOfSale />, path: '/ventas' },
+    { text: 'Reportes', icon: <MdBarChart />, path: '/reportes' },
+  ];
+
+  // Solo el desarrollador ve la opción de roles
+  const menu = (user && user.email === 'melvinalvin.bello@gmail.com')
+    ? [...baseMenu, { text: 'Roles', icon: <MdBarChart />, path: '/roles' }]
+    : baseMenu;
 
   const drawer = (
     <div>

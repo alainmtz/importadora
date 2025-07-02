@@ -14,13 +14,13 @@ const ESTADOS = [
 function Compras({ onCompraRealizada }) {
   const [productos, setProductos] = useState([]);
   const [sucursales, setSucursales] = useState([]);
-  const [proveedores, setProveedores] = useState([]);
   const [detalle, setDetalle] = useState([]);
-  const [sucursalId, setSucursalId] = useState('');
-  const [proveedorId, setProveedorId] = useState('');
-  const [estado, setEstado] = useState('comprado');
+  const [sucursalDestinoId, setSucursalDestinoId] = useState(''); // Cambiado aquí
+  const [proveedor, setProveedor] = useState('');
+  const [estadoEnvio, setEstadoEnvio] = useState('comprado');
   const [mensaje, setMensaje] = useState('');
   const [loading, setLoading] = useState(false);
+  const [comprasSucursal, setComprasSucursal] = useState([]);
 
   // Para agregar productos a la compra
   const [productoId, setProductoId] = useState('');
@@ -33,15 +33,28 @@ function Compras({ onCompraRealizada }) {
       setProductos(prods || []);
       const { data: sucs } = await supabase.from('sucursales').select('*');
       setSucursales(sucs || []);
-      // Si tienes tabla de proveedores, descomenta:
-      // const { data: provs } = await supabase.from('proveedores').select('*');
-      // setProveedores(provs || []);
     }
     fetchData();
   }, []);
 
+  useEffect(() => {
+    async function fetchComprasSucursal() {
+      if (!sucursalDestinoId) {
+        setComprasSucursal([]);
+        return;
+      }
+      const { data } = await supabase
+        .from('compras')
+        .select('id, proveedor, estado_envio, fecha_compra')
+        .eq('sucursal_destino_id', sucursalDestinoId)
+        .order('fecha_compra', { ascending: false });
+      setComprasSucursal(data || []);
+    }
+    fetchComprasSucursal();
+  }, [sucursalDestinoId, mensaje]); // Se actualiza al cambiar sucursal o registrar compra
+
   const handleAgregarDetalle = () => {
-    if (!productoId || cantidad < 1 || !precio) {
+    if (!productoId || cantidad < 1 || precio === '' || precio < 0) {
       setMensaje('Completa los datos del producto');
       return;
     }
@@ -67,18 +80,20 @@ function Compras({ onCompraRealizada }) {
   const handleRegistrarCompra = async (e) => {
     e.preventDefault();
     setMensaje('');
-    if (!sucursalId || detalle.length === 0) {
+    if (!sucursalDestinoId || detalle.length === 0) {
       setMensaje('Completa todos los campos y agrega al menos un producto');
       return;
     }
     setLoading(true);
+
     // Insertar compra
     const { data: compra, error } = await supabase
       .from('compras')
       .insert([{
-        sucursal_id: sucursalId,
-        proveedor_id: proveedorId || null,
-        estado
+        sucursal_destino_id: sucursalDestinoId,
+        proveedor: proveedor || null,
+        estado_envio: estadoEnvio,
+        fecha_compra: new Date().toISOString().slice(0, 10) // YYYY-MM-DD
       }])
       .select()
       .single();
@@ -107,14 +122,13 @@ function Compras({ onCompraRealizada }) {
     }
 
     // Si la compra es recibida, sumar al inventario
-    if (estado === 'recibido') {
+    if (estadoEnvio === 'recibido') {
       for (const d of detalle) {
-        // Buscar inventario existente
         const { data: inv } = await supabase
           .from('inventario')
           .select('*')
           .eq('producto_id', d.producto_id)
-          .eq('sucursal_id', sucursalId)
+          .eq('sucursal_id', sucursalDestinoId)
           .single();
         if (inv) {
           await supabase
@@ -124,18 +138,65 @@ function Compras({ onCompraRealizada }) {
         } else {
           await supabase
             .from('inventario')
-            .insert([{ producto_id: d.producto_id, sucursal_id: sucursalId, cantidad: d.cantidad }]);
+            .insert([{ producto_id: d.producto_id, sucursal_id: sucursalDestinoId, cantidad: d.cantidad }]);
         }
       }
     }
 
     setMensaje('Compra registrada correctamente');
     setDetalle([]);
-    setSucursalId('');
-    setProveedorId('');
-    setEstado('comprado');
+    setSucursalDestinoId('');
+    setProveedor('');
+    setEstadoEnvio('comprado');
     setLoading(false);
     if (onCompraRealizada) onCompraRealizada();
+  };
+
+  const handleEstadoChange = async (compraId, nuevoEstado) => {
+    const { error } = await supabase
+      .from('compras')
+      .update({ estado_envio: nuevoEstado })
+      .eq('id', compraId);
+    if (error) {
+      setMensaje('Error al actualizar el estado');
+      return;
+    }
+
+    // Si el nuevo estado es "recibido", actualizar inventario
+    if (nuevoEstado === 'recibido') {
+      // Obtener detalles de la compra
+      const { data: detalles, error: errorDetalles } = await supabase
+        .from('detalle_compras')
+        .select('producto_id, cantidad')
+        .eq('compra_id', compraId);
+
+      if (!errorDetalles && detalles) {
+        for (const d of detalles) {
+          // Buscar si ya existe inventario para ese producto y sucursal
+          const { data: inv } = await supabase
+            .from('inventario')
+            .select('*')
+            .eq('producto_id', d.producto_id)
+            .eq('sucursal_id', sucursalDestinoId)
+            .single();
+          if (inv) {
+            await supabase
+              .from('inventario')
+              .update({ cantidad: inv.cantidad + d.cantidad })
+              .eq('id', inv.id);
+          } else {
+            await supabase
+              .from('inventario')
+              .insert([{ producto_id: d.producto_id, sucursal_id: sucursalDestinoId, cantidad: d.cantidad }]);
+          }
+        }
+      }
+    }
+
+    setComprasSucursal(prev =>
+      prev.map(c => c.id === compraId ? { ...c, estado_envio: nuevoEstado } : c)
+    );
+    setMensaje('Estado actualizado');
   };
 
   return (
@@ -145,11 +206,11 @@ function Compras({ onCompraRealizada }) {
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth required>
-              <InputLabel>Sucursal</InputLabel>
+              <InputLabel>Sucursal destino</InputLabel>
               <Select
-                value={sucursalId}
-                label="Sucursal"
-                onChange={e => setSucursalId(e.target.value)}
+                value={sucursalDestinoId}
+                label="Sucursal destino"
+                onChange={e => setSucursalDestinoId(e.target.value)}
               >
                 <MenuItem value="">Seleccione sucursal</MenuItem>
                 {sucursales.map(s => (
@@ -158,29 +219,21 @@ function Compras({ onCompraRealizada }) {
               </Select>
             </FormControl>
           </Grid>
-          {/* Si tienes proveedores, descomenta este bloque */}
-          {/* <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Proveedor</InputLabel>
-              <Select
-                value={proveedorId}
-                label="Proveedor"
-                onChange={e => setProveedorId(e.target.value)}
-              >
-                <MenuItem value="">Sin proveedor</MenuItem>
-                {proveedores.map(p => (
-                  <MenuItem key={p.id} value={p.id}>{p.nombre}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid> */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Proveedor"
+              value={proveedor}
+              onChange={e => setProveedor(e.target.value)}
+              fullWidth
+            />
+          </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth required>
               <InputLabel>Estado</InputLabel>
               <Select
-                value={estado}
+                value={estadoEnvio}
                 label="Estado"
-                onChange={e => setEstado(e.target.value)}
+                onChange={e => setEstadoEnvio(e.target.value)}
               >
                 {ESTADOS.map(e => (
                   <MenuItem key={e.value} value={e.value}>{e.label}</MenuItem>
@@ -275,6 +328,39 @@ function Compras({ onCompraRealizada }) {
           {mensaje}
         </Alert>
       </Snackbar>
+      {comprasSucursal.length > 0 && (
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="subtitle1">Compras de la sucursal seleccionada</Typography>
+          <Box component="table" sx={{ width: '100%', mt: 1, borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={{ borderBottom: '1px solid #ccc' }}>Fecha</th>
+                <th style={{ borderBottom: '1px solid #ccc' }}>Proveedor</th>
+                <th style={{ borderBottom: '1px solid #ccc' }}>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {comprasSucursal.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.fecha_compra}</td>
+                  <td>{c.proveedor}</td>
+                  <td>
+                    <Select
+                      value={c.estado_envio}
+                      size="small"
+                      onChange={e => handleEstadoChange(c.id, e.target.value)}
+                    >
+                      {ESTADOS.map(e => (
+                        <MenuItem key={e.value} value={e.value}>{e.label}</MenuItem>
+                      ))}
+                    </Select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Box>
+        </Box>
+      )}
     </Paper>
   );
 }

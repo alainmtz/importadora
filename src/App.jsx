@@ -10,6 +10,7 @@ import TransferirInventario from './components/TransferirInventario';
 import Compras from './components/Compras';
 import Reportes from './components/Reportes';
 import VentasSucursal from './components/VentasSucursal';
+import VistaGestionRoles from './components/VistaGestionRoles';
 
 function App() {
   const [refrescar, setRefrescar] = useState(false);
@@ -51,6 +52,7 @@ function App() {
           <Route path="compras" element={<Compras />} />
           <Route path="ventas" element={<VentasSucursal />} />
           <Route path="reportes" element={<Reportes />} />
+          <Route path="roles" element={<VistaGestionRoles />} />
         </Route>
       </Routes>
     </BrowserRouter>

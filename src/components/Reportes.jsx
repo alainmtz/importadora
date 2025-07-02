@@ -46,10 +46,10 @@ function Reportes() {
     let query = supabase
       .from('compras')
       .select('*, detalle_compras(*, producto:producto_id(*))')
-      .eq('sucursal_id', sucursalId);
+      .eq('sucursal_destino_id', sucursalId); // Cambiado aquí
 
-    if (fechaInicio) query = query.gte('created_at', fechaInicio);
-    if (fechaFin) query = query.lte('created_at', fechaFin);
+    if (fechaInicio) query = query.gte('fecha_compra', fechaInicio); // Cambiado aquí
+    if (fechaFin) query = query.lte('fecha_compra', fechaFin); // Cambiado aquí
 
     const { data, error } = await query;
     if (error) {
@@ -142,6 +142,7 @@ function Reportes() {
             <TableRow>
               <TableCell>Fecha</TableCell>
               <TableCell>Estado</TableCell>
+              <TableCell>Sucursal Origen</TableCell> {/* Nueva columna */}
               <TableCell>Detalle</TableCell>
               <TableCell>Total</TableCell>
             </TableRow>
@@ -149,8 +150,11 @@ function Reportes() {
           <TableBody>
             {compras.map((c) => (
               <TableRow key={c.id}>
-                <TableCell>{c.created_at?.slice(0, 10)}</TableCell>
-                <TableCell>{c.estado}</TableCell>
+                <TableCell>{c.fecha_compra}</TableCell>
+                <TableCell>{c.estado_envio}</TableCell>
+                <TableCell>
+                  {sucursales.find(s => s.id === c.sucursal_origen_id)?.nombre || c.sucursal_origen_id || 'N/A'}
+                </TableCell>
                 <TableCell>
                   {c.detalle_compras?.map((d, idx) => (
                     <div key={idx}>
