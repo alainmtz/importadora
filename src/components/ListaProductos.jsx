@@ -96,11 +96,13 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
 
   const confirmarEliminar = async () => {
     if (productoEliminar) {
+      // Elimina inventario relacionado primero
+      await supabase.from('inventario').delete().eq('producto_id', productoEliminar);
+      // Ahora elimina el producto
       const { error } = await supabase.from('productos').delete().eq('id', productoEliminar);
       if (error) setMensaje('Error al eliminar producto');
       else {
         setMensaje('Producto eliminado');
-        // Actualiza la lista localmente para reflejar el cambio inmediato
         setProductos(prev => prev.filter(p => p.id !== productoEliminar));
         if (onProductoEliminado) onProductoEliminado();
       }
