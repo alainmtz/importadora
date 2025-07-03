@@ -98,10 +98,14 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
     if (productoEliminar) {
       const { error } = await supabase.from('productos').delete().eq('id', productoEliminar);
       if (error) setMensaje('Error al eliminar producto');
-      else setMensaje('Producto eliminado');
+      else {
+        setMensaje('Producto eliminado');
+        // Actualiza la lista localmente para reflejar el cambio inmediato
+        setProductos(prev => prev.filter(p => p.id !== productoEliminar));
+        if (onProductoEliminado) onProductoEliminado();
+      }
       setProductoEliminar(null);
       setOpenDialog(false);
-      if (onProductoEliminado) onProductoEliminado(productoEliminar);
     }
   };
 
