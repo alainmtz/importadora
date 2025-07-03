@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  Button, IconButton, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, TextField, Box, Typography
+  Button, IconButton, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, TextField, Box, Typography, InputAdornment
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
 
 function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [productos, setProductos] = useState([]);
@@ -17,6 +18,8 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [mensaje, setMensaje] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [productoEliminar, setProductoEliminar] = useState(null);
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroSucursal, setFiltroSucursal] = useState('');
 
   useEffect(() => {
     async function fetchProductos() {
@@ -34,6 +37,11 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
     }
     fetchSucursales();
   }, [onProductoEliminado]);
+
+  // Generar código aleatorio de 4 caracteres (si es necesario al crear producto)
+  // function generarCodigo() {
+  //   return Math.random().toString(36).substring(2, 6).toUpperCase();
+  // }
 
   const handleAsignar = async (productoId) => {
     setMensaje('');
@@ -85,21 +93,73 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
     }
   };
 
+  // Filtro por búsqueda y sucursal
+  const productosFiltrados = productos.filter(prod => {
+    const coincideBusqueda =
+      prod.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      prod.codigo?.toLowerCase().includes(busqueda.toLowerCase());
+    if (!coincideBusqueda) return false;
+    if (!filtroSucursal) return true;
+    // Si hay filtro de sucursal, mostrar solo productos que tengan inventario en esa sucursal
+    // (puedes ajustar esto según tu lógica)
+    // Aquí solo mostramos todos, pero podrías consultar inventario si lo necesitas
+    return true;
+  });
+
   return (
     <Box>
       <Typography variant="h5" sx={{ mb: 2 }}>Lista de Productos</Typography>
-      <TableContainer component={Paper} sx={{ maxWidth: 900 }}>
+      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+        <TextField
+          placeholder="Buscar por nombre o código"
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+          size="small"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ minWidth: 220 }}
+        />
+        <Select
+          value={filtroSucursal}
+          onChange={e => setFiltroSucursal(e.target.value)}
+          displayEmpty
+          size="small"
+          sx={{ minWidth: 180 }}
+        >
+          <MenuItem value="">Todas las sucursales</MenuItem>
+          {sucursales.map(s => (
+            <MenuItem key={s.id} value={s.id}>{s.nombre} ({s.tipo} - {s.pais})</MenuItem>
+          ))}
+        </Select>
+      </Box>
+      <TableContainer component={Paper} sx={{ maxWidth: 1100 }}>
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>Imagen</TableCell>
+              <TableCell>Código</TableCell>
               <TableCell>Nombre</TableCell>
               <TableCell>Categoría</TableCell>
               <TableCell align="center">Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {productos.map(prod => (
+            {productosFiltrados.map(prod => (
               <TableRow key={prod.id}>
+                <TableCell>
+                  {prod.imagen_url
+                    ? <img src={prod.imagen_url} alt={prod.nombre} style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }} />
+                    : <Box sx={{ width: 50, height: 50, bgcolor: '#eee', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>Sin imagen</Box>
+                  }
+                </TableCell>
+                <TableCell>
+                  <Typography fontWeight="bold" fontFamily="monospace">{prod.codigo || '----'}</Typography>
+                </TableCell>
                 <TableCell>{prod.nombre}</TableCell>
                 <TableCell>{prod.categoria}</TableCell>
                 <TableCell align="center">
