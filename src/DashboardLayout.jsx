@@ -5,6 +5,8 @@ import {
 import { MdMenu, MdInventory, MdStore, MdCompareArrows, MdShoppingCart, MdPointOfSale, MdBarChart } from 'react-icons/md';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useUserRoles } from './hooks/useUserRoles'; // Importa el hook de roles
+import { supabase } from './supabaseClient';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 const drawerWidth = 220;
 
@@ -14,6 +16,11 @@ const DashboardLayout = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, roles } = useUserRoles();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.reload(); // O redirige al login si prefieres
+  };
 
   // Menú base
   const baseMenu = [
@@ -69,9 +76,12 @@ const DashboardLayout = () => {
               <MdMenu />
             </IconButton>
           )}
-          <Typography variant="h6" noWrap>
+          <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
             Inventario Energía
           </Typography>
+          <IconButton color="inherit" onClick={handleLogout} title="Cerrar sesión">
+            <LogoutIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
       {/* Drawer para mobile */}
