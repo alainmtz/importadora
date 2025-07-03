@@ -20,6 +20,7 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [productoEliminar, setProductoEliminar] = useState(null);
   const [busqueda, setBusqueda] = useState('');
   const [filtroSucursal, setFiltroSucursal] = useState('');
+  const [inventarioSucursal, setInventarioSucursal] = useState([]);
 
   useEffect(() => {
     async function fetchProductos() {
@@ -38,10 +39,21 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
     fetchSucursales();
   }, [onProductoEliminado]);
 
-  // Generar código aleatorio de 4 caracteres (si es necesario al crear producto)
-  // function generarCodigo() {
-  //   return Math.random().toString(36).substring(2, 6).toUpperCase();
-  // }
+  // Cargar inventario de la sucursal seleccionada para el filtro
+  useEffect(() => {
+    async function fetchInventarioSucursal() {
+      if (!filtroSucursal) {
+        setInventarioSucursal([]);
+        return;
+      }
+      const { data } = await supabase
+        .from('inventario')
+        .select('producto_id')
+        .eq('sucursal_id', filtroSucursal);
+      setInventarioSucursal(data ? data.map(i => i.producto_id) : []);
+    }
+    fetchInventarioSucursal();
+  }, [filtroSucursal]);
 
   const handleAsignar = async (productoId) => {
     setMensaje('');
@@ -100,38 +112,44 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
       prod.codigo?.toLowerCase().includes(busqueda.toLowerCase());
     if (!coincideBusqueda) return false;
     if (!filtroSucursal) return true;
-    // Si hay filtro de sucursal, mostrar solo productos que tengan inventario en esa sucursal
-    // (puedes ajustar esto según tu lógica)
-    // Aquí solo mostramos todos, pero podrías consultar inventario si lo necesitas
-    return true;
+    // Solo muestra productos que tienen inventario en la sucursal seleccionada
+    return inventarioSucursal.includes(prod.id);
   });
 
   return (
     <Box>
       <Typography variant="h5" sx={{ mb: 2 }}>Lista de Productos</Typography>
-      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-        <TextField bgcolor="#fff"
+      <Box sx={{
+        display: 'flex',
+        gap: 2,
+        mb: 2,
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        background: '#f5f7fa',
+        p: 2,
+        borderRadius: 2
+      }}>
+        <TextField
           placeholder="Buscar por nombre o código"
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
           size="small"
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            },
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            style: { background: '#fff' }
           }}
-          sx={{ minWidth: 220 }}
+          sx={{ minWidth: 220, maxWidth: 300 }}
         />
         <Select
           value={filtroSucursal}
           onChange={e => setFiltroSucursal(e.target.value)}
           displayEmpty
           size="small"
-          sx={{ minWidth: 180 }}
+          sx={{ minWidth: 180, background: '#fff' }}
         >
           <MenuItem value="">Todas las sucursales</MenuItem>
           {sucursales.map(s => (
