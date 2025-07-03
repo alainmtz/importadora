@@ -81,6 +81,7 @@ function InventarioSucursal({ refrescar }) {
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
               <TableCell sx={{ fontWeight: 'bold' }}>Producto</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Código</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Cantidad</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Última actualización</TableCell>
             </TableRow>
@@ -89,6 +90,11 @@ function InventarioSucursal({ refrescar }) {
             {inventario.map((i) => (
               <TableRow key={i.id} hover>
                 <TableCell>{i.producto?.nombre}</TableCell>
+                <TableCell>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                    {i.producto?.codigo || '----'}
+                  </span>
+                </TableCell>
                 <TableCell>{i.cantidad}</TableCell>
                 <TableCell>
                   {i.updated_at ? new Date(i.updated_at).toLocaleString() : '-'}
@@ -97,7 +103,7 @@ function InventarioSucursal({ refrescar }) {
             ))}
             {inventario.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} align="center" sx={{ color: '#888' }}>
+                <TableCell colSpan={4} align="center" sx={{ color: '#888' }}>
                   Sin datos
                 </TableCell>
               </TableRow>
