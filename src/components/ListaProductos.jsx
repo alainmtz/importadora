@@ -96,7 +96,12 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
 
   const confirmarEliminar = async () => {
     if (productoEliminar) {
-      // Elimina inventario relacionado primero
+      setMensaje('');
+      // Elimina primero en detalle_compras
+      await supabase.from('detalle_compras').delete().eq('producto_id', productoEliminar);
+      // Elimina primero en detalle_ventas
+      await supabase.from('detalle_ventas').delete().eq('producto_id', productoEliminar);
+      // Elimina inventario relacionado
       await supabase.from('inventario').delete().eq('producto_id', productoEliminar);
       // Ahora elimina el producto
       const { error } = await supabase.from('productos').delete().eq('id', productoEliminar);
