@@ -115,12 +115,14 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
           size="small"
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            },
           }}
           sx={{ minWidth: 220 }}
         />
