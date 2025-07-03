@@ -8,6 +8,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
+import Tooltip from '@mui/material/Tooltip';
+import InfoIcon from '@mui/icons-material/Info';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 
 function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [productos, setProductos] = useState([]);
@@ -203,16 +206,34 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
                 <TableCell>{prod.nombre}</TableCell>
                 <TableCell>{prod.categoria}</TableCell>
                 <TableCell align="center">
-                  <IconButton color="primary" onClick={() => onEditar(prod)}><EditIcon /></IconButton>
-                  <IconButton color="error" onClick={() => handleEliminar(prod.id)}><DeleteIcon /></IconButton>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    sx={{ ml: 1 }}
-                    onClick={() => setAsignarId(prod.id)}
-                  >
-                    Asignar a Sucursal
-                  </Button>
+                  <Tooltip title="Editar">
+                    <IconButton color="primary" onClick={() => onEditar(prod)}>
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Eliminar">
+                    <IconButton color="error" onClick={() => handleEliminar(prod.id)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Asignar a Sucursal">
+                    <IconButton
+                      color="secondary"
+                      onClick={() => setAsignarId(prod.id)}
+                      sx={{ ml: 1 }}
+                    >
+                      <AssignmentTurnedInIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Ver detalles">
+                    <IconButton
+                      color="info"
+                      onClick={() => alert(`Detalles del producto:\n\nNombre: ${prod.nombre}\nCódigo: ${prod.codigo}\nCategoría: ${prod.categoria}`)}
+                      sx={{ ml: 1 }}
+                    >
+                      <InfoIcon />
+                    </IconButton>
+                  </Tooltip>
                   {asignarId === prod.id && (
                     <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Select
