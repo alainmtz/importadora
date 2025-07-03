@@ -7,6 +7,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 
 function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [productos, setProductos] = useState([]);
@@ -21,6 +22,7 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [busqueda, setBusqueda] = useState('');
   const [filtroSucursal, setFiltroSucursal] = useState('');
   const [inventarioSucursal, setInventarioSucursal] = useState([]);
+  const [imagenAmpliada, setImagenAmpliada] = useState(null);
 
   useEffect(() => {
     async function fetchProductos() {
@@ -184,7 +186,14 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
               <TableRow key={prod.id}>
                 <TableCell>
                   {prod.imagen_url
-                    ? <img src={prod.imagen_url} alt={prod.nombre} style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }} />
+                    ? (
+                      <img
+                        src={prod.imagen_url}
+                        alt={prod.nombre}
+                        style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4, cursor: 'pointer' }}
+                        onClick={() => setImagenAmpliada(prod.imagen_url)}
+                      />
+                    )
                     : <Box sx={{ width: 50, height: 50, bgcolor: '#eee', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>Sin imagen</Box>
                   }
                 </TableCell>
@@ -256,6 +265,29 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
           <Button onClick={() => setOpenDialog(false)}>Cancelar</Button>
           <Button onClick={confirmarEliminar} color="error">Eliminar</Button>
         </DialogActions>
+      </Dialog>
+      {/* Modal para imagen ampliada */}
+      <Dialog
+        open={!!imagenAmpliada}
+        onClose={() => setImagenAmpliada(null)}
+        maxWidth="xl"
+        PaperProps={{
+          sx: { width: '80vw', maxWidth: '80vw', textAlign: 'center', background: '#222' }
+        }}
+      >
+        <IconButton
+          onClick={() => setImagenAmpliada(null)}
+          sx={{ position: 'absolute', top: 8, right: 8, color: '#fff', zIndex: 1 }}
+        >
+          <CloseIcon />
+        </IconButton>
+        {imagenAmpliada && (
+          <img
+            src={imagenAmpliada}
+            alt="Producto ampliado"
+            style={{ maxWidth: '100%', maxHeight: '80vh', margin: 'auto', display: 'block', borderRadius: 8 }}
+          />
+        )}
       </Dialog>
     </Box>
   );
