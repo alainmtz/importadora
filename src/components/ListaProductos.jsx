@@ -110,7 +110,7 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
     <Box>
       <Typography variant="h5" sx={{ mb: 2 }}>Lista de Productos</Typography>
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-        <TextField
+        <TextField bgcolor="#fff"
           placeholder="Buscar por nombre o código"
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
