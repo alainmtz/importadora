@@ -4,7 +4,7 @@ import {
 } from '@mui/material';
 import { MdMenu, MdInventory, MdStore, MdCompareArrows, MdShoppingCart, MdPointOfSale, MdBarChart } from 'react-icons/md';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { useUserRoles } from './hooks/useUserRoles'; // importa el hook
+import { useUserRoles } from './hooks/useUserRoles'; // Importa el hook de roles
 
 const drawerWidth = 220;
 
