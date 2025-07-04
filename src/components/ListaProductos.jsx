@@ -11,6 +11,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Tooltip from '@mui/material/Tooltip';
 import InfoIcon from '@mui/icons-material/Info';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import { QRCode } from 'qrcode.react';
 
 function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [productos, setProductos] = useState([]);
@@ -181,6 +182,7 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
               <TableCell>Código</TableCell>
               <TableCell>Nombre</TableCell>
               <TableCell>Categoría</TableCell>
+              <TableCell>QR</TableCell>
               <TableCell align="center">Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -205,6 +207,14 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
                 </TableCell>
                 <TableCell>{prod.nombre}</TableCell>
                 <TableCell>{prod.categoria}</TableCell>
+                <TableCell>
+                  <QRCode
+                    value={`https://importadora.vercel.app/productos/${prod.id}`}
+                    size={48}
+                    level="M"
+                    includeMargin={false}
+                  />
+                </TableCell>
                 <TableCell align="center">
                   <Tooltip title="Editar">
                     <IconButton color="primary" onClick={() => onEditar(prod)}>
