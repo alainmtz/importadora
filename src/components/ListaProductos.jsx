@@ -27,6 +27,7 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [filtroSucursal, setFiltroSucursal] = useState('');
   const [inventarioSucursal, setInventarioSucursal] = useState([]);
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
+  const [qrAmpliado, setQrAmpliado] = useState(null);
 
   useEffect(() => {
     async function fetchProductos() {
@@ -208,12 +209,14 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
                 <TableCell>{prod.nombre}</TableCell>
                 <TableCell>{prod.categoria}</TableCell>
                 <TableCell>
-                  <QRCode
-                    value={`https://importadora.vercel.app/productos/${prod.id}`}
-                    size={48}
-                    level="M"
-                    includeMargin={false}
-                  />
+                  <Box sx={{ cursor: 'pointer', display: 'inline-block' }} onClick={() => setQrAmpliado(`https://importadora.vercel.app/productos/${prod.id}`)}>
+                    <QRCode
+                      value={`https://importadora.vercel.app/productos/${prod.id}`}
+                      size={48}
+                      level="M"
+                      includeMargin={false}
+                    />
+                  </Box>
                 </TableCell>
                 <TableCell align="center">
                   <Tooltip title="Editar">
@@ -318,6 +321,36 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
             alt="Producto ampliado"
             style={{ maxWidth: '100%', maxHeight: '80vh', margin: 'auto', display: 'block', borderRadius: 8 }}
           />
+        )}
+      </Dialog>
+      {/* Modal para QR ampliado */}
+      <Dialog
+        open={!!qrAmpliado}
+        onClose={() => setQrAmpliado(null)}
+        maxWidth="sm"
+        PaperProps={{
+          sx: { width: 'auto', textAlign: 'center', background: '#222' }
+        }}
+      >
+        <IconButton
+          onClick={() => setQrAmpliado(null)}
+          sx={{ position: 'absolute', top: 8, right: 8, color: '#fff', zIndex: 1 }}
+        >
+          <CloseIcon />
+        </IconButton>
+        {qrAmpliado && (
+          <Box sx={{ p: 4 }}>
+            <QRCode
+              value={qrAmpliado}
+              size={256}
+              level="H"
+              includeMargin={true}
+              bgColor="#fff"
+            />
+            <Typography variant="body2" sx={{ color: '#fff', mt: 2, wordBreak: 'break-all' }}>
+              {qrAmpliado}
+            </Typography>
+          </Box>
         )}
       </Dialog>
     </Box>
