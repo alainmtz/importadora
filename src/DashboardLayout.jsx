@@ -25,10 +25,10 @@ const DashboardLayout = () => {
   // Menú base
   const baseMenu = [
     { text: 'Productos', icon: <MdInventory />, path: '/productos' },
+    { text: 'Compras', icon: <MdShoppingCart />, path: '/compras' },
     { text: 'Sucursales', icon: <MdStore />, path: '/sucursales' },
     { text: 'Inventario', icon: <MdInventory />, path: '/inventario' },
     { text: 'Transferencias', icon: <MdCompareArrows />, path: '/transferencias' },
-    { text: 'Compras', icon: <MdShoppingCart />, path: '/compras' },
     { text: 'Ventas', icon: <MdPointOfSale />, path: '/ventas' },
     { text: 'Reportes', icon: <MdBarChart />, path: '/reportes' },
   ];
