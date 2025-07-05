@@ -393,7 +393,7 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
               p: 2
             }}
           >
-            {productos.map(prod => (
+            {productosFiltrados.map(prod => (
               <Box
                 key={prod.id}
                 sx={{
