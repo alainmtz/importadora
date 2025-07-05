@@ -235,25 +235,23 @@ function Reportes() {
       </Box>
 
       {/* Reporte de Ventas */}
-      <Box>
+      <Box sx={{ mt: 4 }}>
         <Typography variant="subtitle1" gutterBottom>Ventas</Typography>
         <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>Fecha</TableCell>
-              <TableCell>Estado</TableCell>
               <TableCell>Sucursal</TableCell>
               <TableCell>Detalle</TableCell>
               <TableCell>Total</TableCell>
-              <TableCell>Acciones</TableCell>
+              <TableCell>Factura</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {ventas.map((v) => (
               <TableRow key={v.id}>
                 <TableCell>{v.fecha_venta}</TableCell>
-                <TableCell>{v.estado}</TableCell>
-                <TableCell>{v.sucursal?.nombre}</TableCell>
+                <TableCell>{v.sucursal?.nombre || v.sucursal_id || 'N/A'}</TableCell>
                 <TableCell>
                   {v.detalle_ventas?.map((d, idx) => (
                     <div key={idx}>
@@ -265,15 +263,19 @@ function Reportes() {
                   {v.detalle_ventas?.reduce((sum, d) => sum + d.cantidad * d.precio_unitario, 0)}
                 </TableCell>
                 <TableCell>
-                  <Button variant="outlined" onClick={() => handleExportFactura(v)}>
-                    Exportar
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleExportFactura(v)}
+                  >
+                    Exportar PDF
                   </Button>
                 </TableCell>
               </TableRow>
             ))}
             {ventas.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6}>Sin datos</TableCell>
+                <TableCell colSpan={5}>Sin datos</TableCell>
               </TableRow>
             )}
           </TableBody>
