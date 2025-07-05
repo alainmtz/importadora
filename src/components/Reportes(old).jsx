@@ -49,10 +49,10 @@ function Reportes() {
     let query = supabase
       .from('compras')
       .select('*, detalle_compras(*, producto:producto_id(*))')
-      .eq('sucursal_destino_id', sucursalId);
+      .eq('sucursal_destino_id', sucursalId); // Cambiado aquí
 
-    if (fechaInicio) query = query.gte('fecha_compra', fechaInicio);
-    if (fechaFin) query = query.lte('fecha_compra', fechaFin);
+    if (fechaInicio) query = query.gte('fecha_compra', fechaInicio); // Cambiado aquí
+    if (fechaFin) query = query.lte('fecha_compra', fechaFin); // Cambiado aquí
 
     const { data, error } = await query;
     if (error) {
@@ -200,7 +200,7 @@ function Reportes() {
             <TableRow>
               <TableCell>Fecha</TableCell>
               <TableCell>Estado</TableCell>
-              <TableCell>Sucursal Origen</TableCell>
+              <TableCell>Sucursal Origen</TableCell> {/* Nueva columna */}
               <TableCell>Detalle</TableCell>
               <TableCell>Total</TableCell>
             </TableRow>
