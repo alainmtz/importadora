@@ -30,6 +30,7 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
   const [qrAmpliado, setQrAmpliado] = useState(null);
   const [openExportQR, setOpenExportQR] = useState(false);
+  const [productoDetalle, setProductoDetalle] = useState(null);
 
   useEffect(() => {
     async function fetchProductos() {
@@ -252,7 +253,7 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
                   <Tooltip title="Ver detalles">
                     <IconButton
                       color="info"
-                      onClick={() => alert(`Detalles del producto:\n\nNombre: ${prod.nombre}\nCódigo: ${prod.codigo}\nCategoría: ${prod.categoria}`)}
+                      onClick={() => setProductoDetalle(prod)}
                       sx={{ ml: 1 }}
                     >
                       <InfoIcon />
@@ -427,6 +428,51 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
               Imprimir / Guardar como PDF
             </Button>
           </Box>
+        </DialogContent>
+      </Dialog>
+      {/* Modal para detalles del producto */}
+      <Dialog
+        open={!!productoDetalle}
+        onClose={() => setProductoDetalle(null)}
+        maxWidth="sm"
+        PaperProps={{
+          sx: { p: 3, background: '#fff' }
+        }}
+      >
+        <DialogTitle>
+          Detalles del producto
+          <IconButton
+            onClick={() => setProductoDetalle(null)}
+            sx={{ position: 'absolute', top: 8, right: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {productoDetalle && (
+            <Box sx={{ textAlign: 'center', p: 2 }}>
+              {productoDetalle.imagen_url && (
+                <img
+                  src={productoDetalle.imagen_url}
+                  alt={productoDetalle.nombre}
+                  style={{ width: 160, height: 160, objectFit: 'cover', borderRadius: 8, marginBottom: 16 }}
+                />
+              )}
+              <Typography variant="h6" gutterBottom>{productoDetalle.nombre}</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                <b>Código:</b> {productoDetalle.codigo}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                <b>Categoría:</b> {productoDetalle.categoria}
+              </Typography>
+              {productoDetalle.descripcion && (
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <b>Descripción:</b> {productoDetalle.descripcion}
+                </Typography>
+              )}
+              {/* Agrega aquí más campos si lo deseas */}
+            </Box>
+          )}
         </DialogContent>
       </Dialog>
     </Box>
