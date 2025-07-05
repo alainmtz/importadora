@@ -11,6 +11,7 @@ import Compras from './components/Compras';
 import Reportes from './components/Reportes';
 import VentasSucursal from './components/VentasSucursal';
 import VistaGestionRoles from './components/VistaGestionRoles';
+import ProductoDetalle from './components/ProductoDetalle';
 
 function App() {
   const [refrescar, setRefrescar] = useState(false);
@@ -46,6 +47,7 @@ function App() {
               />
             </div>
           } />
+          <Route path="/productos/:id" element={<ProductoDetalle />} />
           <Route path="sucursales" element={<Sucursales />} />
           <Route path="inventario" element={<InventarioSucursal refrescar={refrescarInventario} />} />
           <Route path="transferencias" element={<TransferirInventario onTransferencia={() => setRefrescarInventario(r => !r)} />} />
