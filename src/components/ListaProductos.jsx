@@ -12,6 +12,7 @@ import Tooltip from '@mui/material/Tooltip';
 import InfoIcon from '@mui/icons-material/Info';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import {QRCodeSVG} from 'qrcode.react';
+import PrintIcon from '@mui/icons-material/Print';
 
 function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [productos, setProductos] = useState([]);
@@ -28,6 +29,7 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [inventarioSucursal, setInventarioSucursal] = useState([]);
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
   const [qrAmpliado, setQrAmpliado] = useState(null);
+  const [openExportQR, setOpenExportQR] = useState(false);
 
   useEffect(() => {
     async function fetchProductos() {
@@ -137,6 +139,15 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   return (
     <Box>
       <Typography variant="h5" sx={{ mb: 2 }}>Lista de Productos</Typography>
+      <Button
+        variant="contained"
+        color="secondary"
+        startIcon={<PrintIcon />}
+        sx={{ mb: 2 }}
+        onClick={() => setOpenExportQR(true)}
+      >
+        Exportar QR
+      </Button>
       <Box sx={{
         display: 'flex',
         gap: 2,
@@ -352,6 +363,71 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
             </Typography>
           </Box>
         )}
+      </Dialog>
+      {/* Modal para exportar todos los QR */}
+      <Dialog
+        open={openExportQR}
+        onClose={() => setOpenExportQR(false)}
+        maxWidth="lg"
+        PaperProps={{
+          sx: { p: 4, background: '#fff' }
+        }}
+      >
+        <DialogTitle>
+          QRs de productos
+          <IconButton
+            onClick={() => setOpenExportQR(false)}
+            sx={{ position: 'absolute', top: 8, right: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 4,
+              justifyContent: 'center',
+              p: 2
+            }}
+          >
+            {productos.map(prod => (
+              <Box
+                key={prod.id}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  width: 180,
+                  mb: 2
+                }}
+              >
+                <QRCodeSVG
+                  value={`https://importadora.vercel.app/productos/${prod.id}`}
+                  size={128}
+                  level="M"
+                  includeMargin={true}
+                />
+                <Typography variant="subtitle1" sx={{ mt: 1, fontWeight: 'bold', textAlign: 'center' }}>
+                  {prod.nombre}
+                </Typography>
+                <Typography variant="body2" sx={{ fontFamily: 'monospace', textAlign: 'center' }}>
+                  {prod.codigo}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<PrintIcon />}
+              onClick={() => window.print()}
+            >
+              Imprimir / Guardar como PDF
+            </Button>
+          </Box>
+        </DialogContent>
       </Dialog>
     </Box>
   );
