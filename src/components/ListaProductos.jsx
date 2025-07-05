@@ -11,7 +11,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Tooltip from '@mui/material/Tooltip';
 import InfoIcon from '@mui/icons-material/Info';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
-import { QRCode } from 'qrcode.react';
+import {QRCodeSVG} from 'qrcode.react';
 
 function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
   const [productos, setProductos] = useState([]);
@@ -210,7 +210,7 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
                 <TableCell>{prod.categoria}</TableCell>
                 <TableCell>
                   <Box sx={{ cursor: 'pointer', display: 'inline-block' }} onClick={() => setQrAmpliado(`https://importadora.vercel.app/productos/${prod.id}`)}>
-                    <QRCode
+                    <QRCodeSVG
                       value={`https://importadora.vercel.app/productos/${prod.id}`}
                       size={48}
                       level="M"
@@ -340,7 +340,7 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
         </IconButton>
         {qrAmpliado && (
           <Box sx={{ p: 4 }}>
-            <QRCode
+            <QRCodeSVG
               value={qrAmpliado}
               size={256}
               level="H"
