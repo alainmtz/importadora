@@ -4,7 +4,7 @@ import {
   Paper, Box, Typography, Select, MenuItem, TextField, Button, Grid, InputLabel, FormControl, Table, TableHead, TableRow, TableCell, TableBody, Snackbar, Alert
 } from '@mui/material';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 function Reportes() {
   const [sucursales, setSucursales] = useState([]);
@@ -101,7 +101,7 @@ function Reportes() {
       d.cantidad * d.precio_unitario
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
       head: [['Producto', 'Cantidad', 'Precio Unitario', 'Subtotal']],
       body: rows,
       startY: 52,
