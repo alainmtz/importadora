@@ -11,6 +11,7 @@ function TransferirInventario({ onTransferencia }) {
   const [origenId, setOrigenId] = useState('');
   const [destinoId, setDestinoId] = useState('');
   const [cantidad, setCantidad] = useState(1);
+  const [precioUnitario, setPrecioUnitario] = useState('');
   const [mensaje, setMensaje] = useState('');
 
   useEffect(() => {
@@ -26,7 +27,7 @@ function TransferirInventario({ onTransferencia }) {
   const handleTransferir = async (e) => {
     e.preventDefault();
     setMensaje('');
-    if (!productoId || !origenId || !destinoId || origenId === destinoId || cantidad < 1) {
+    if (!productoId || !origenId || !destinoId || origenId === destinoId || cantidad < 1 || !precioUnitario) {
       setMensaje('Complete todos los campos correctamente');
       return;
     }
@@ -73,11 +74,28 @@ function TransferirInventario({ onTransferencia }) {
         .insert([{ producto_id: productoId, sucursal_id: destinoId, cantidad }]);
     }
 
+    // Guardar detalle de transferencia
+    const { error } = await supabase
+      .from('detalle_transferencias')
+      .insert([{
+        producto_id: productoId,
+        sucursal_origen: origenId,
+        sucursal_destino: destinoId,
+        cantidad,
+        precio_unitario: parseFloat(precioUnitario)
+      }]);
+
+    if (error) {
+      setMensaje('Error al registrar detalle de transferencia');
+      return;
+    }
+
     setMensaje('Transferencia realizada correctamente');
     setProductoId('');
     setOrigenId('');
     setDestinoId('');
     setCantidad(1);
+    setPrecioUnitario('');
     if (onTransferencia) onTransferencia();
   };
 
@@ -137,6 +155,16 @@ function TransferirInventario({ onTransferencia }) {
               onChange={e => setCantidad(Number(e.target.value))}
               fullWidth
               required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Precio unitario"
+              type="number"
+              value={precioUnitario}
+              onChange={e => setPrecioUnitario(e.target.value)}
+              inputProps={{ min: 0, step: "0.01" }}
+              sx={{ width: 120, ml: 2 }}
             />
           </Grid>
         </Grid>
