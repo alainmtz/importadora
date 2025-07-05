@@ -3,12 +3,15 @@ import { supabase } from '../supabaseClient';
 import {
   Paper, Box, Typography, Select, MenuItem, TextField, Button, Grid, InputLabel, FormControl, Table, TableHead, TableRow, TableCell, TableBody, Snackbar, Alert
 } from '@mui/material';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 function Reportes() {
   const [sucursales, setSucursales] = useState([]);
   const [sucursalId, setSucursalId] = useState('');
   const [inventario, setInventario] = useState([]);
   const [compras, setCompras] = useState([]);
+  const [ventas, setVentas] = useState([]);
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [mensaje, setMensaje] = useState('');
@@ -60,6 +63,56 @@ function Reportes() {
     }
   };
 
+  const fetchVentas = async () => {
+    if (!sucursalId) {
+      setMensaje('Seleccione una sucursal para ver ventas');
+      return;
+    }
+    let query = supabase
+      .from('ventas')
+      .select('*, detalle_ventas(*, producto:producto_id(*)), sucursal:sucursal_id(nombre)')
+      .eq('sucursal_id', sucursalId);
+
+    if (fechaInicio) query = query.gte('fecha_venta', fechaInicio);
+    if (fechaFin) query = query.lte('fecha_venta', fechaFin);
+
+    const { data, error } = await query;
+    if (error) {
+      setMensaje('Error al cargar ventas');
+      setVentas([]);
+    } else {
+      setVentas(data || []);
+    }
+  };
+
+  const handleExportFactura = (venta) => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text('Factura de Venta', 14, 18);
+    doc.setFontSize(12);
+    doc.text(`Fecha: ${venta.fecha_venta}`, 14, 28);
+    doc.text(`Sucursal: ${venta.sucursal?.nombre || venta.sucursal_id}`, 14, 36);
+    doc.text(`ID Venta: ${venta.id}`, 14, 44);
+
+    const rows = venta.detalle_ventas.map(d => [
+      d.producto?.nombre,
+      d.cantidad,
+      d.precio_unitario,
+      d.cantidad * d.precio_unitario
+    ]);
+
+    doc.autoTable({
+      head: [['Producto', 'Cantidad', 'Precio Unitario', 'Subtotal']],
+      body: rows,
+      startY: 52,
+    });
+
+    const total = venta.detalle_ventas.reduce((sum, d) => sum + d.cantidad * d.precio_unitario, 0);
+    doc.text(`Total: $${total.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+
+    doc.save(`factura-venta-${venta.id}.pdf`);
+  };
+
   return (
     <Paper elevation={3} sx={{ p: 3, mb: 3, maxWidth: 1100 }}>
       <Typography variant="h6" gutterBottom>Reportes</Typography>
@@ -103,6 +156,11 @@ function Reportes() {
           <Grid item xs={12} sm={2}>
             <Button variant="contained" onClick={fetchCompras} fullWidth>
               Ver compras
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={2}>
+            <Button variant="contained" onClick={fetchVentas} fullWidth>
+              Ver ventas
             </Button>
           </Grid>
         </Grid>
@@ -175,6 +233,53 @@ function Reportes() {
           </TableBody>
         </Table>
       </Box>
+
+      {/* Reporte de Ventas */}
+      <Box>
+        <Typography variant="subtitle1" gutterBottom>Ventas</Typography>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Fecha</TableCell>
+              <TableCell>Estado</TableCell>
+              <TableCell>Sucursal</TableCell>
+              <TableCell>Detalle</TableCell>
+              <TableCell>Total</TableCell>
+              <TableCell>Acciones</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {ventas.map((v) => (
+              <TableRow key={v.id}>
+                <TableCell>{v.fecha_venta}</TableCell>
+                <TableCell>{v.estado}</TableCell>
+                <TableCell>{v.sucursal?.nombre}</TableCell>
+                <TableCell>
+                  {v.detalle_ventas?.map((d, idx) => (
+                    <div key={idx}>
+                      {d.producto?.nombre} x {d.cantidad} @ {d.precio_unitario}
+                    </div>
+                  ))}
+                </TableCell>
+                <TableCell>
+                  {v.detalle_ventas?.reduce((sum, d) => sum + d.cantidad * d.precio_unitario, 0)}
+                </TableCell>
+                <TableCell>
+                  <Button variant="outlined" onClick={() => handleExportFactura(v)}>
+                    Exportar
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+            {ventas.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6}>Sin datos</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Box>
+
       <Snackbar open={!!mensaje} autoHideDuration={3000} onClose={() => setMensaje('')}>
         <Alert onClose={() => setMensaje('')} severity="info" sx={{ width: '100%' }}>
           {mensaje}
