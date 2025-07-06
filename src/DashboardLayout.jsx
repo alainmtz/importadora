@@ -7,7 +7,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useUserRoles } from './hooks/useUserRoles'; // Importa el hook de roles
 import { supabase } from './supabaseClient';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { Analytics } from "@vercel/analytics/next"
+
 
 const drawerWidth = 220;
 
