@@ -90,22 +90,23 @@ function Reportes() {
     doc.setFontSize(16);
     doc.text('Factura de Venta', 14, 18);
     doc.setFontSize(12);
-    const fecha = new Date(venta.fecha); // o venta.fecha_venta si vuelves a ese campo
+    const fecha = new Date(venta.fecha);
     const fechaFormateada = fecha.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+      day: '2-digit', month: '2-digit', year: 'numeric'
     }) + ' : ' + fecha.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
+      hour: '2-digit', minute: '2-digit', hour12: false
     });
     doc.text(`Fecha: ${fechaFormateada}`, 14, 28);
     doc.text(`Sucursal: ${venta.sucursal?.nombre || venta.sucursal_id}`, 14, 36);
     doc.text(`ID Venta: ${venta.id}`, 14, 44);
-    doc.text(`Cliente: ${venta.cliente?.nombre || 'N/A'}`, 14, 52);
-    doc.text(`Identificación: ${venta.cliente?.identificacion || 'N/A'}`, 14, 60);
+    const cliente = typeof venta.cliente === 'string' ? JSON.parse(venta.cliente) : venta.cliente;
+    doc.text(`Cliente: ${cliente?.nombre || 'N/A'}`, 14, 54);
+    doc.text(`Identificación: ${cliente?.identificacion || 'N/A'}`, 14, 62);
+    doc.text(`Dirección: ${cliente?.direccion || 'N/A'}`, 14, 70);
+    doc.text(`Teléfono: ${cliente?.telefono || 'N/A'}`, 14, 78);
 
+    // Espacio antes de la tabla
+    const startY = 88;
     const rows = venta.detalle_ventas.map(d => [
       d.producto?.nombre,
       d.cantidad,
@@ -116,11 +117,16 @@ function Reportes() {
     autoTable(doc, {
       head: [['Producto', 'Cantidad', 'Precio Unitario', 'Subtotal']],
       body: rows,
-      startY: 52,
+      startY,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      margin: { left: 14, right: 14 },
     });
 
     const total = venta.detalle_ventas.reduce((sum, d) => sum + d.cantidad * d.precio_unitario, 0);
-    doc.text(`Total: $${total.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+    const afterTableY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(12);
+    doc.text(`Total: $${total.toFixed(2)}`, 14, afterTableY);
 
     doc.save(`factura-venta-${venta.id}.pdf`);
   };
@@ -261,6 +267,7 @@ function Reportes() {
           </TableHead>
           <TableBody>
             {ventas.map((v) => {
+              const cliente = typeof v.cliente === 'string' ? JSON.parse(v.cliente) : v.cliente;
               const fecha = new Date(v.fecha);
               const fechaFormateada = fecha.toLocaleDateString('es-ES', {
                 day: '2-digit',
