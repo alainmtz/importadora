@@ -70,7 +70,7 @@ function Reportes() {
     }
     let query = supabase
       .from('ventas')
-      .select('*, detalle_ventas(*, producto:producto_id(*)), sucursal:sucursal_id(nombre)')
+      .select('*, detalle_ventas(*, producto:producto_id(*)), sucursal:sucursal_id(nombre), cliente:cliente_id(nombre, identificacion)')
       .eq('sucursal_id', sucursalId);
 
     if (fechaInicio) query = query.gte('fecha_venta', fechaInicio);
@@ -95,6 +95,8 @@ function Reportes() {
     doc.text(`Fecha: ${fechaFormateada}`, 14, 28);
     doc.text(`Sucursal: ${venta.sucursal?.nombre || venta.sucursal_id}`, 14, 36);
     doc.text(`ID Venta: ${venta.id}`, 14, 44);
+    doc.text(`Cliente: ${venta.cliente?.nombre || 'N/A'}`, 14, 52);
+    doc.text(`Identificación: ${venta.cliente?.identificacion || 'N/A'}`, 14, 60);
 
     const rows = venta.detalle_ventas.map(d => [
       d.producto?.nombre,
