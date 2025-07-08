@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import {
-  Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, Box, IconButton, useTheme, useMediaQuery
+  Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, Box, IconButton, useTheme, useMediaQuery, Button, Modal
 } from '@mui/material';
 import { MdMenu, MdInventory, MdStore, MdCompareArrows, MdShoppingCart, MdPointOfSale, MdBarChart } from 'react-icons/md';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useUserRoles } from './hooks/useUserRoles'; // Importa el hook de roles
 import { supabase } from './supabaseClient';
 import LogoutIcon from '@mui/icons-material/Logout';
+import PerfilUsuario from './components/PerfilUsuario';
+import EditIcon from '@mui/icons-material/Edit';
+import IndicadorConexion from './components/IndicadorConexion';
 
 
 const drawerWidth = 220;
@@ -17,6 +20,7 @@ const DashboardLayout = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, roles } = useUserRoles();
+  const [openPerfil, setOpenPerfil] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -80,6 +84,22 @@ const DashboardLayout = () => {
           <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
             Inventario Energía
           </Typography>
+          {user && (
+            <Button
+              color="inherit"
+              startIcon={<EditIcon />}
+              onClick={() => setOpenPerfil(true)}
+              sx={{ textTransform: 'none', mr: 1 }}
+            >
+              {user.user_metadata?.display_name || user.email}
+            </Button>
+          )}
+          <Modal open={openPerfil} onClose={() => setOpenPerfil(false)}>
+            <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24, p: 3, borderRadius: 2, minWidth: 320 }}>
+              {user && <PerfilUsuario user={user} onClose={() => setOpenPerfil(false)} />}
+            </Box>
+          </Modal>
+          <IndicadorConexion />
           <IconButton color="inherit" onClick={handleLogout} title="Cerrar sesión">
             <LogoutIcon />
           </IconButton>
