@@ -45,9 +45,16 @@ function Auth({ onAuth }) {
   }, [onAuth]);
 
   const handleSignUp = async () => {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) setMensaje(error.message);
-    else setMensaje('Revisa tu correo para confirmar el registro');
+    else {
+      setMensaje('Revisa tu correo para confirmar el registro');
+      // Si el usuario se creó, crear registro en usuario_roles con activo: false
+      const user = data?.user;
+      if (user) {
+        await supabase.from('usuario_roles').insert([{ user_id: user.id, activo: false }]);
+      }
+    }
   };
 
   const handleSignIn = async () => {
