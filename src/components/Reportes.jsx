@@ -70,7 +70,7 @@ function Reportes() {
     }
     let query = supabase
       .from('ventas')
-      .select('*, detalle_ventas(*, producto:producto_id(*)), sucursal:sucursal_id(nombre), cliente:cliente_id(nombre, identificacion)')
+      .select('*, detalle_ventas(*, producto:producto_id(*)), sucursal:sucursal_id(nombre)')
       .eq('sucursal_id', sucursalId);
 
     if (fechaInicio) query = query.gte('fecha_venta', fechaInicio);
@@ -90,8 +90,16 @@ function Reportes() {
     doc.setFontSize(16);
     doc.text('Factura de Venta', 14, 18);
     doc.setFontSize(12);
-    const fecha = new Date(venta.fecha_venta);
-    const fechaFormateada = fecha.toLocaleDateString('es-ES');
+    const fecha = new Date(venta.fecha); // o venta.fecha_venta si vuelves a ese campo
+    const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }) + ' : ' + fecha.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
     doc.text(`Fecha: ${fechaFormateada}`, 14, 28);
     doc.text(`Sucursal: ${venta.sucursal?.nombre || venta.sucursal_id}`, 14, 36);
     doc.text(`ID Venta: ${venta.id}`, 14, 44);
@@ -252,31 +260,43 @@ function Reportes() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {ventas.map((v) => (
-              <TableRow key={v.id}>
-                <TableCell>{v.fecha_venta}</TableCell>
-                <TableCell>{v.sucursal?.nombre || v.sucursal_id || 'N/A'}</TableCell>
-                <TableCell>
-                  {v.detalle_ventas?.map((d, idx) => (
-                    <div key={idx}>
-                      {d.producto?.nombre} x {d.cantidad} @ {d.precio_unitario}
-                    </div>
-                  ))}
-                </TableCell>
-                <TableCell>
-                  {v.detalle_ventas?.reduce((sum, d) => sum + d.cantidad * d.precio_unitario, 0)}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => handleExportFactura(v)}
-                  >
-                    Exportar Factura
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {ventas.map((v) => {
+              const fecha = new Date(v.fecha);
+              const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              }) + ' : ' + fecha.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              });
+              return (
+                <TableRow key={v.id}>
+                  <TableCell>{fechaFormateada}</TableCell>
+                  <TableCell>{v.sucursal?.nombre || v.sucursal_id || 'N/A'}</TableCell>
+                  <TableCell>
+                    {v.detalle_ventas?.map((d, idx) => (
+                      <div key={idx}>
+                        {d.producto?.nombre} x {d.cantidad} @ {d.precio_unitario}
+                      </div>
+                    ))}
+                  </TableCell>
+                  <TableCell>
+                    {v.detalle_ventas?.reduce((sum, d) => sum + d.cantidad * d.precio_unitario, 0)}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => handleExportFactura(v)}
+                    >
+                      Exportar Factura
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
             {ventas.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5}>Sin datos</TableCell>
