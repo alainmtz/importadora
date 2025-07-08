@@ -10,13 +10,34 @@ function Auth({ onAuth }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    async function checkUserActivoAndSetUser(user) {
+      if (!user) {
+        setUser(null);
+        if (onAuth) onAuth(null);
+        return;
+      }
+      // Consultar si el usuario está activo
+      const { data, error } = await supabase
+        .from('usuario_roles')
+        .select('activo')
+        .eq('user_id', user.id)
+        .single();
+      if (error || !data || data.activo === false) {
+        setMensaje('Tu usuario está inactivo. Contacta al administrador.');
+        await supabase.auth.signOut();
+        setUser(null);
+        if (onAuth) onAuth(null);
+        return;
+      }
+      setUser(user);
+      if (onAuth) onAuth(user);
+    }
+
     supabase.auth.getUser().then(({ data }) => {
-      setUser(data?.user || null);
-      if (onAuth) onAuth(data?.user || null);
+      checkUserActivoAndSetUser(data?.user || null);
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-      if (onAuth) onAuth(session?.user || null);
+      checkUserActivoAndSetUser(session?.user || null);
     });
     return () => {
       listener?.subscription.unsubscribe();
@@ -31,8 +52,36 @@ function Auth({ onAuth }) {
 
   const handleSignIn = async () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setMensaje(error.message);
-    else if (onAuth) onAuth();
+    if (error) {
+      setMensaje(error.message);
+      return;
+    }
+    // Obtener usuario autenticado
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setMensaje('No se pudo obtener el usuario.');
+      return;
+    }
+    // Consultar si el usuario está activo en la tabla usuario_roles
+    const { data, error: rolesError } = await supabase
+      .from('usuario_roles')
+      .select('activo')
+      .eq('user_id', user.id)
+      .single();
+    console.log('usuario_roles data:', data);
+    console.log('usuario_roles error:', rolesError);
+    if (rolesError) {
+      setMensaje('Error al verificar el estado del usuario.');
+      await supabase.auth.signOut();
+      return;
+    }
+    if (!data || data.activo === false) {
+      setMensaje('Tu usuario está inactivo. Contacta al administrador.');
+      await supabase.auth.signOut();
+      return;
+    }
+    // Usuario activo, continuar
+    if (onAuth) onAuth();
   };
 
   const handleMagicLink = async () => {

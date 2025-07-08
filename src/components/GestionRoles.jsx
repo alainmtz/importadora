@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { Box, Typography, Table, TableHead, TableRow, TableCell, TableBody, Select, MenuItem, Button } from '@mui/material';
+import { Box, Typography, Table, TableHead, TableRow, TableCell, TableBody, Select, MenuItem, Button, Switch } from '@mui/material';
 import { useUserRoles } from '../hooks/useUserRoles';
 
 const ROLES = ['admin', 'vendedor', 'supervisor'];
@@ -9,6 +9,7 @@ export default function GestionRoles() {
   const { user, roles, loading } = useUserRoles();
   const [usuarios, setUsuarios] = useState([]);
   const [usuarioRoles, setUsuarioRoles] = useState({});
+  const [usuarioActivo, setUsuarioActivo] = useState({});
   const [mensaje, setMensaje] = useState('');
 
   useEffect(() => {
@@ -16,16 +17,19 @@ export default function GestionRoles() {
       // Usa la función RPC para obtener usuarios de auth.users
       const { data } = await supabase.rpc('get_all_users');
       setUsuarios(data || []);
-      // Cargar roles de todos los usuarios
-      const { data: rolesData } = await supabase.from('usuario_roles').select('user_id, roles(nombre)');
+      // Cargar roles y estado activo de todos los usuarios
+      const { data: rolesData } = await supabase.from('usuario_roles').select('user_id, roles(nombre), activo');
       const rolesMap = {};
+      const activoMap = {};
       (rolesData || []).forEach(r => {
         if (!rolesMap[r.user_id]) rolesMap[r.user_id] = [];
         if (r.roles?.nombre) rolesMap[r.user_id].push(r.roles.nombre);
+        activoMap[r.user_id] = r.activo;
       });
       setUsuarioRoles(rolesMap);
+      setUsuarioActivo(activoMap);
     }
-    if (roles.includes('developer')) fetchUsuarios();
+    if (roles.includes('developer') || roles.includes('admin')) fetchUsuarios();
   }, [roles]);
 
   const handleRoleChange = async (userId, newRole) => {
@@ -53,6 +57,30 @@ export default function GestionRoles() {
     setUsuarioRoles(rolesMap);
   };
 
+  const handleActivoChange = async (userId, checked) => {
+    // No permitir desactivar al developer principal
+    if (usuarios.find(u => u.id === userId)?.email === 'melvinalvin.bello@gmail.com') {
+      setMensaje('No puedes desactivar al desarrollador');
+      return;
+    }
+    const { error } = await supabase
+      .from('usuario_roles')
+      .update({ activo: checked })
+      .eq('user_id', userId);
+    if (error) {
+      setMensaje('Error al actualizar el estado');
+      return;
+    }
+    setMensaje('Estado actualizado');
+    // Refresca
+    const { data: rolesData } = await supabase.from('usuario_roles').select('user_id, roles(nombre), activo');
+    const activoMap = {};
+    (rolesData || []).forEach(r => {
+      activoMap[r.user_id] = r.activo;
+    });
+    setUsuarioActivo(activoMap);
+  };
+
   if (loading) return <div>Cargando...</div>;
   if (!roles.includes('developer') && !roles.includes('admin')) return <div>No tienes permiso para ver esta sección</div>;
 
@@ -65,6 +93,7 @@ export default function GestionRoles() {
           <TableRow>
             <TableCell>Email</TableCell>
             <TableCell>Rol</TableCell>
+            <TableCell>Activo</TableCell>
             <TableCell>Acción</TableCell>
           </TableRow>
         </TableHead>
@@ -84,6 +113,14 @@ export default function GestionRoles() {
                     <MenuItem key={r} value={r}>{r}</MenuItem>
                   ))}
                 </Select>
+              </TableCell>
+              <TableCell>
+                <Switch
+                  checked={!!usuarioActivo[u.id]}
+                  onChange={e => handleActivoChange(u.id, e.target.checked)}
+                  disabled={!(roles.includes('developer') || roles.includes('admin')) || u.email === 'melvinalvin.bello@gmail.com'}
+                  color="primary"
+                />
               </TableCell>
               <TableCell>
                 <Button
