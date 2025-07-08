@@ -272,7 +272,7 @@ function Reportes() {
                     variant="outlined"
                     onClick={() => handleExportFactura(v)}
                   >
-                    Exportar PDF 1
+                    Exportar Factura
                   </Button>
                 </TableCell>
               </TableRow>
