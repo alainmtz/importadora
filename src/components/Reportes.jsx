@@ -90,7 +90,9 @@ function Reportes() {
     doc.setFontSize(16);
     doc.text('Factura de Venta', 14, 18);
     doc.setFontSize(12);
-    doc.text(`Fecha: ${venta.fecha_venta}`, 14, 28);
+    const fecha = new Date(venta.fecha_venta);
+    const fechaFormateada = fecha.toLocaleDateString('es-ES');
+    doc.text(`Fecha: ${fechaFormateada}`, 14, 28);
     doc.text(`Sucursal: ${venta.sucursal?.nombre || venta.sucursal_id}`, 14, 36);
     doc.text(`ID Venta: ${venta.id}`, 14, 44);
 
