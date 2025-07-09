@@ -129,13 +129,13 @@ function VentasSucursal({ onVentaRealizada }) {
         .from('inventario')
         .select('*')
         .eq('producto_id', d.producto_id)
-        .eq('sucursal_id', sucursalId)
-        .single();
-      if (inv && inv.cantidad >= d.cantidad) {
+        .eq('sucursal_id', sucursalId);
+      
+      if (inv && inv.length > 0 && inv[0].cantidad >= d.cantidad) {
         await supabase
           .from('inventario')
-          .update({ cantidad: inv.cantidad - d.cantidad })
-          .eq('id', inv.id);
+          .update({ cantidad: inv[0].cantidad - d.cantidad })
+          .eq('id', inv[0].id);
       }
     }
 

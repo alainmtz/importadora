@@ -75,15 +75,14 @@ function ListaProductos({ onEditar, onProductoEliminado, onAsignacion }) {
       .from('inventario')
       .select('*')
       .eq('producto_id', productoId)
-      .eq('sucursal_id', sucursalSeleccionada)
-      .single();
+      .eq('sucursal_id', sucursalSeleccionada);
 
-    if (existente) {
-      const nuevaCantidad = (existente.cantidad || 0) + cantidad;
+    if (existente && existente.length > 0) {
+      const nuevaCantidad = (existente[0].cantidad || 0) + cantidad;
       const { error } = await supabase
         .from('inventario')
         .update({ cantidad: nuevaCantidad })
-        .eq('id', existente.id);
+        .eq('id', existente[0].id);
       if (error) setMensaje('Error al actualizar inventario');
       else setMensaje('Inventario actualizado');
     } else {

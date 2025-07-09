@@ -128,13 +128,13 @@ function Compras({ onCompraRealizada }) {
           .from('inventario')
           .select('*')
           .eq('producto_id', d.producto_id)
-          .eq('sucursal_id', sucursalDestinoId)
-          .single();
-        if (inv) {
+          .eq('sucursal_id', sucursalDestinoId);
+        
+        if (inv && inv.length > 0) {
           await supabase
             .from('inventario')
-            .update({ cantidad: inv.cantidad + d.cantidad })
-            .eq('id', inv.id);
+            .update({ cantidad: inv[0].cantidad + d.cantidad })
+            .eq('id', inv[0].id);
         } else {
           await supabase
             .from('inventario')
@@ -177,13 +177,13 @@ function Compras({ onCompraRealizada }) {
             .from('inventario')
             .select('*')
             .eq('producto_id', d.producto_id)
-            .eq('sucursal_id', sucursalDestinoId)
-            .single();
-          if (inv) {
+            .eq('sucursal_id', sucursalDestinoId);
+          
+          if (inv && inv.length > 0) {
             await supabase
               .from('inventario')
-              .update({ cantidad: inv.cantidad + d.cantidad })
-              .eq('id', inv.id);
+              .update({ cantidad: inv[0].cantidad + d.cantidad })
+              .eq('id', inv[0].id);
           } else {
             await supabase
               .from('inventario')

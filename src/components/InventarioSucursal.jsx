@@ -9,6 +9,7 @@ function InventarioSucursal({ refrescar }) {
   const [sucursales, setSucursales] = useState([]);
   const [sucursalId, setSucursalId] = useState('');
   const [inventario, setInventario] = useState([]);
+  const [precios, setPrecios] = useState({}); // { producto_id: precio_unitario }
   const [mensaje, setMensaje] = useState('');
 
   useEffect(() => {
@@ -23,6 +24,7 @@ function InventarioSucursal({ refrescar }) {
     async function fetchInventario() {
       if (!sucursalId) {
         setInventario([]);
+        setPrecios({});
         return;
       }
       const { data, error } = await supabase
@@ -31,6 +33,21 @@ function InventarioSucursal({ refrescar }) {
         .eq('sucursal_id', sucursalId);
       if (error) setMensaje('Error al cargar inventario');
       setInventario(data || []);
+
+      // Obtener el precio unitario de la última compra para cada producto
+      const preciosTemp = {};
+      for (const item of data || []) {
+        const { data: compras } = await supabase
+          .from('detalle_compras')
+          .select('precio_unitario, fecha')
+          .eq('producto_id', item.producto_id)
+          //.eq('sucursal_destino_id', sucursalId)
+          .order('fecha', { ascending: false })
+          .limit(1);
+        preciosTemp[item.producto_id] = compras?.[0]?.precio_unitario || null;
+      }
+      setPrecios(preciosTemp);
+      console.log(preciosTemp);
     }
     fetchInventario();
   }, [sucursalId, refrescar]);
@@ -77,33 +94,41 @@ function InventarioSucursal({ refrescar }) {
         p: 2,
         width: '100%'
       }}>
-        <Table size="small" sx={{ minWidth: 600, width: '100%' }}>
+        <Table size="small" sx={{ minWidth: 800, width: '100%' }}>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
               <TableCell sx={{ fontWeight: 'bold' }}>Producto</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Código</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Cantidad</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Precio Unitario</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Última actualización</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {inventario.map((i) => (
-              <TableRow key={i.id} hover>
-                <TableCell>{i.producto?.nombre}</TableCell>
-                <TableCell>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                    {i.producto?.codigo || '----'}
-                  </span>
-                </TableCell>
-                <TableCell>{i.cantidad}</TableCell>
-                <TableCell>
-                  {i.updated_at ? new Date(i.updated_at).toLocaleString() : '-'}
-                </TableCell>
-              </TableRow>
-            ))}
+            {inventario.map((i) => {
+              const precio = precios[i.producto_id];
+              const total = precio ? i.cantidad * precio : null;
+              return (
+                <TableRow key={i.id} hover>
+                  <TableCell>{i.producto?.nombre}</TableCell>
+                  <TableCell>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                      {i.producto?.codigo || '----'}
+                    </span>
+                  </TableCell>
+                  <TableCell>{i.cantidad}</TableCell>
+                  <TableCell>{precio ? `$${precio.toFixed(2)}` : '-'}</TableCell>
+                  <TableCell>{total ? `$${total.toFixed(2)}` : '-'}</TableCell>
+                  <TableCell>
+                    {i.updated_at ? new Date(i.updated_at).toLocaleString() : '-'}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
             {inventario.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} align="center" sx={{ color: '#888' }}>
+                <TableCell colSpan={6} align="center" sx={{ color: '#888' }}>
                   Sin datos
                 </TableCell>
               </TableRow>

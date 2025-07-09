@@ -9,29 +9,39 @@ export function useUserRoles() {
   useEffect(() => {
     async function fetchUserAndRoles() {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
 
-      if (user) {
-        // Usuario desarrollador: acceso total
-        if (user.email === 'melvinalvin.bello@gmail.com') {
-          setRoles(['developer']);
-          setLoading(false);
-          return;
-        }
-        // Buscar roles en la base de datos
-        const { data, error } = await supabase
-          .from('usuario_roles')
-          .select('roles(nombre)')
-          .eq('user_id', user.id);
+        if (user) {
+          // Usuario desarrollador: acceso total
+          if (user.email === 'melvinalvin.bello@gmail.com') {
+            setRoles(['developer']);
+            setLoading(false);
+            return;
+          }
+          // Buscar roles en la base de datos
+          const { data, error } = await supabase
+            .from('usuario_roles')
+            .select('roles(nombre)')
+            .eq('user_id', user.id);
 
-        if (error || !data) {
-          setRoles([]);
+          if (error || !data) {
+            console.warn('Error fetching user roles:', error);
+            setRoles([]);
+          } else {
+            const roleNames = data.map(r => r.roles?.nombre).filter(Boolean);
+            setRoles(roleNames);
+          }
         } else {
-          setRoles(data.map(r => r.roles?.nombre).filter(Boolean));
+          setRoles([]);
         }
+      } catch (error) {
+        console.error('Error in useUserRoles:', error);
+        setRoles([]);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     fetchUserAndRoles();
   }, []);

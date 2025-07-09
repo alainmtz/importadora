@@ -10,6 +10,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import PerfilUsuario from './components/PerfilUsuario';
 import EditIcon from '@mui/icons-material/Edit';
 import IndicadorConexion from './components/IndicadorConexion';
+import NotificacionesTransferencias from './components/NotificacionesTransferencias';
 
 
 const drawerWidth = 220;
@@ -84,6 +85,7 @@ const DashboardLayout = () => {
           <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
             Inventario Energía
           </Typography>
+          <NotificacionesTransferencias />
           {user && (
             <Button
               color="inherit"
