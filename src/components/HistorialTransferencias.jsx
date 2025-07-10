@@ -7,6 +7,7 @@ import {
 import { Visibility, Edit, Download } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { QRCodeSVG } from 'qrcode.react';
 
 function HistorialTransferencias() {
   const [transferencias, setTransferencias] = useState([]);
@@ -23,6 +24,8 @@ function HistorialTransferencias() {
   const [mensaje, setMensaje] = useState('');
   const [detalleAbierto, setDetalleAbierto] = useState(null);
   const [detalleTransferencia, setDetalleTransferencia] = useState([]);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [qrTransferId, setQrTransferId] = useState(null);
 
   useEffect(() => {
     fetchSucursales();
@@ -327,13 +330,14 @@ function HistorialTransferencias() {
             <TableCell>Estado</TableCell>
             <TableCell>Observaciones</TableCell>
             <TableCell>Acciones</TableCell>
+            <TableCell>QR</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {transferencias.map((t) => (
             <TableRow key={t.id} hover>
               <TableCell>
-                {new Date(t.fecha_transferencia).toLocaleString()}
+                {new Date(t.fecha_transferencia || t.created_at).toLocaleString()}
               </TableCell>
               <TableCell>{t.sucursal_origen?.nombre}</TableCell>
               <TableCell>{t.sucursal_destino?.nombre}</TableCell>
@@ -356,11 +360,18 @@ function HistorialTransferencias() {
                   </IconButton>
                 )}
               </TableCell>
+              <TableCell>
+                {t.estado !== 'completada' && (
+                  <Button size="small" variant="outlined" onClick={() => { setQrTransferId(t.id); setQrDialogOpen(true); }}>
+                    Ver QR
+                  </Button>
+                )}
+              </TableCell>
             </TableRow>
           ))}
           {transferencias.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} align="center">Sin transferencias</TableCell>
+              <TableCell colSpan={8} align="center">Sin transferencias</TableCell>
             </TableRow>
           )}
         </TableBody>
@@ -395,6 +406,29 @@ function HistorialTransferencias() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDetalleAbierto(null)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de QR */}
+      <Dialog open={qrDialogOpen} onClose={() => setQrDialogOpen(false)}>
+        <DialogTitle>QR de Transferencia</DialogTitle>
+        <DialogContent sx={{ textAlign: 'center' }}>
+          {qrTransferId && (
+            <>
+              <QRCodeSVG
+                value={`${window.location.origin}/transferencia/${qrTransferId}`}
+                size={256}
+                level="H"
+                includeMargin={true}
+              />
+              <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                {`${window.location.origin}/transferencia/${qrTransferId}`}
+              </Typography>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setQrDialogOpen(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
 

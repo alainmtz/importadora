@@ -4,6 +4,7 @@ import {
   Paper, Box, Typography, Select, MenuItem, TextField, Button, Snackbar, Alert, Grid, Table, TableHead, TableRow, TableCell, TableBody, IconButton
 } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
+import { QRCodeSVG } from 'qrcode.react';
 
 function TransferirInventario({ onTransferencia }) {
   const [productos, setProductos] = useState([]);
@@ -18,6 +19,9 @@ function TransferirInventario({ onTransferencia }) {
   const [productoSeleccionado, setProductoSeleccionado] = useState('');
   const [cantidad, setCantidad] = useState(1);
   const [precioUnitario, setPrecioUnitario] = useState('');
+
+  const [transferenciaCreada, setTransferenciaCreada] = useState(null);
+  const [mostrarQR, setMostrarQR] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -92,7 +96,7 @@ function TransferirInventario({ onTransferencia }) {
           sucursal_origen_id: origenId,
           sucursal_destino_id: destinoId,
           usuario_id: user.id,
-          estado: 'completada',
+          estado: 'pendiente',
           observaciones: observaciones || `Transferencia de ${detalleProductos.length} productos`
         }])
         .select()
@@ -155,7 +159,11 @@ function TransferirInventario({ onTransferencia }) {
         }
       }
 
-      setMensaje('Transferencia realizada correctamente');
+      // Prepara los datos para el QR
+      const enlaceQR = `${window.location.origin}/transferencia/${transferencia.id}`;
+      setTransferenciaCreada(enlaceQR);
+      setMostrarQR(true);
+      setMensaje('Transferencia realizada correctamente. Escanea el QR para continuar.');
       setOrigenId('');
       setDestinoId('');
       setObservaciones('');
@@ -307,6 +315,23 @@ function TransferirInventario({ onTransferencia }) {
           Transferir ({detalleProductos.length} productos)
         </Button>
       </Box>
+
+      {mostrarQR && transferenciaCreada && (
+        <Box sx={{ mt: 3, textAlign: 'center' }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Escanea este QR para continuar el proceso de transferencia
+          </Typography>
+          <QRCodeSVG
+            value={transferenciaCreada}
+            size={256}
+            level="H"
+            includeMargin={true}
+          />
+          <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+            {transferenciaCreada}
+          </Typography>
+        </Box>
+      )}
 
       <Snackbar open={!!mensaje} autoHideDuration={3000} onClose={() => setMensaje('')}>
         <Alert onClose={() => setMensaje('')} severity="info" sx={{ width: '100%' }}>

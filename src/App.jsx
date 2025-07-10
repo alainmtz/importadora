@@ -13,6 +13,7 @@ import VentasSucursal from './components/VentasSucursal';
 import VistaGestionRoles from './components/VistaGestionRoles';
 import ProductoDetalle from './components/ProductoDetalle';
 import PaginaInicio from './components/PaginaInicio';
+import EstadoTransferencia from './components/EstadoTransferencia';
 
 function App() {
   const [refrescar, setRefrescar] = useState(false);
@@ -56,6 +57,7 @@ function App() {
           <Route path="ventas" element={<VentasSucursal />} />
           <Route path="reportes" element={<Reportes />} />
           <Route path="roles" element={<VistaGestionRoles />} />
+          <Route path="/transferencia/:id" element={<EstadoTransferencia />} />
         </Route>
       </Routes>
     </BrowserRouter>
