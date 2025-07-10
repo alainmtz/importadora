@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import {
   Paper, Box, Typography, Select, MenuItem, TextField, Button, Table, TableHead, TableRow, TableCell, TableBody,
-  Snackbar, Alert, Grid, InputLabel, FormControl, Chip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, useTheme, useMediaQuery
+  Snackbar, Alert, Grid, InputLabel, FormControl, Chip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, useTheme, useMediaQuery,
+  Card, CardContent, CardActions, CardHeader, Divider
 } from '@mui/material';
-import { Visibility, Edit, Download } from '@mui/icons-material';
+import { Visibility, Edit, Download, QrCode, Info } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { QRCodeSVG } from 'qrcode.react';
@@ -313,18 +314,26 @@ function HistorialTransferencias() {
           </Grid>
         </Grid>
         
-        <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        <Box sx={{ 
+          mt: 2, 
+          display: 'flex', 
+          gap: 1, 
+          flexWrap: 'wrap',
+          flexDirection: isMobile ? 'column' : 'row'
+        }}>
           <Button 
             variant="contained" 
             onClick={fetchTransferencias}
-            size={isMobile ? "small" : "medium"}
+            size={isMobile ? "large" : "medium"}
+            fullWidth={isMobile}
           >
             Filtrar
           </Button>
           <Button 
             variant="outlined" 
             onClick={limpiarFiltros}
-            size={isMobile ? "small" : "medium"}
+            size={isMobile ? "large" : "medium"}
+            fullWidth={isMobile}
           >
             Limpiar
           </Button>
@@ -332,84 +341,155 @@ function HistorialTransferencias() {
             variant="outlined" 
             startIcon={<Download />}
             onClick={exportarPDF}
-            size={isMobile ? "small" : "medium"}
+            size={isMobile ? "large" : "medium"}
+            fullWidth={isMobile}
           >
-            {isMobile ? "PDF" : "Exportar PDF"}
+            {isMobile ? "Exportar PDF" : "Exportar PDF"}
           </Button>
         </Box>
       </Box>
 
-      {/* Tabla */}
-      <Box sx={{ overflowX: 'auto' }}>
-        <Table size={isMobile ? "small" : "medium"}>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Fecha</TableCell>
-              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Origen</TableCell>
-              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Destino</TableCell>
-              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Usuario</TableCell>
-              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Estado</TableCell>
-              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Observaciones</TableCell>
-              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Acciones</TableCell>
-              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>QR</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {transferencias.map((t) => (
-              <TableRow key={t.id} hover>
-                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
-                  {new Date(t.fecha_transferencia || t.created_at).toLocaleString()}
-                </TableCell>
-                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
-                  {isMobile ? t.sucursal_origen?.nombre?.split(' ')[0] : t.sucursal_origen?.nombre}
-                </TableCell>
-                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
-                  {isMobile ? t.sucursal_destino?.nombre?.split(' ')[0] : t.sucursal_destino?.nombre}
-                </TableCell>
-                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
-                  {isMobile ? t.usuario?.email?.split('@')[0] : t.usuario?.email}
-                </TableCell>
-                <TableCell>
-                  <Chip 
-                    label={t.estado} 
-                    color={getEstadoColor(t.estado)} 
-                    size={isMobile ? "small" : "medium"}
-                    sx={{ fontSize: isMobile ? '0.7rem' : '0.75rem' }}
-                  />
-                </TableCell>
-                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
-                  {isMobile ? (t.observaciones || '-').substring(0, 20) + '...' : t.observaciones || '-'}
-                </TableCell>
-                <TableCell>
+      {/* Tarjetas de Transferencias */}
+      <Grid container spacing={isMobile ? 1 : 2}>
+        {transferencias.map((t) => (
+          <Grid item xs={12} sm={6} md={4} key={t.id}>
+            <Card 
+              elevation={2}
+              sx={{ 
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                '&:hover': {
+                  elevation: 4,
+                  transform: 'translateY(-2px)',
+                  transition: 'all 0.2s ease-in-out'
+                }
+              }}
+            >
+              {/* Header con fecha */}
+              <CardHeader
+                title={new Date(t.fecha_transferencia || t.created_at).toLocaleDateString()}
+                subheader={new Date(t.fecha_transferencia || t.created_at).toLocaleTimeString()}
+                sx={{
+                  pb: 1,
+                  '& .MuiCardHeader-title': {
+                    fontSize: isMobile ? '0.9rem' : '1rem',
+                    fontWeight: 'bold'
+                  },
+                  '& .MuiCardHeader-subheader': {
+                    fontSize: isMobile ? '0.75rem' : '0.875rem'
+                  }
+                }}
+              />
+              
+              <Divider />
+              
+              {/* Body con origen y destino */}
+              <CardContent sx={{ flexGrow: 1, py: 2 }}>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="textSecondary" display="block">
+                    Origen
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                    {t.sucursal_origen?.nombre || 'N/A'}
+                  </Typography>
+                </Box>
+                
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="textSecondary" display="block">
+                    Destino
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                    {t.sucursal_destino?.nombre || 'N/A'}
+                  </Typography>
+                </Box>
+                
+                <Box>
+                  <Typography variant="caption" color="textSecondary" display="block">
+                    Usuario
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                    {t.usuario?.email || 'N/A'}
+                  </Typography>
+                </Box>
+                
+                {t.observaciones && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="caption" color="textSecondary" display="block">
+                      Observaciones
+                    </Typography>
+                    <Typography variant="body2" sx={{ 
+                      fontSize: isMobile ? '0.75rem' : '0.875rem',
+                      fontStyle: 'italic'
+                    }}>
+                      {t.observaciones.length > 50 
+                        ? `${t.observaciones.substring(0, 50)}...` 
+                        : t.observaciones
+                      }
+                    </Typography>
+                  </Box>
+                )}
+              </CardContent>
+              
+              <Divider />
+              
+              {/* Footer con estado y acciones */}
+              <CardActions sx={{ 
+                justifyContent: 'space-between', 
+                px: 2, 
+                py: 1,
+                backgroundColor: 'grey.50'
+              }}>
+                <Chip 
+                  label={t.estado} 
+                  color={getEstadoColor(t.estado)} 
+                  size={isMobile ? "small" : "medium"}
+                  sx={{ fontSize: isMobile ? '0.7rem' : '0.75rem' }}
+                />
+                
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
                   <IconButton 
                     onClick={() => verDetalle(t.id)}
                     size={isMobile ? "small" : "medium"}
+                    color="primary"
+                    title="Ver detalles"
                   >
-                    <Visibility fontSize={isMobile ? "small" : "medium"} />
+                    <Info fontSize={isMobile ? "small" : "medium"} />
                   </IconButton>
-                </TableCell>
-                <TableCell>
+                  
                   {t.estado !== 'completada' && (
-                    <Button 
-                      size="small" 
-                      variant="outlined" 
+                    <IconButton 
                       onClick={() => { setQrTransferId(t.id); setQrDialogOpen(true); }}
-                      sx={{ fontSize: isMobile ? '0.7rem' : '0.75rem' }}
+                      size={isMobile ? "small" : "medium"}
+                      color="secondary"
+                      title="Ver QR"
                     >
-                      {isMobile ? "QR" : "Ver QR"}
-                    </Button>
+                      <QrCode fontSize={isMobile ? "small" : "medium"} />
+                    </IconButton>
                   )}
-                </TableCell>
-              </TableRow>
-            ))}
-            {transferencias.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={8} align="center">Sin transferencias</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </Box>
+                </Box>
+              </CardActions>
+            </Card>
+          </Grid>
+        ))}
+        
+        {transferencias.length === 0 && (
+          <Grid item xs={12}>
+            <Box sx={{ 
+              textAlign: 'center', 
+              py: 4,
+              color: 'text.secondary'
+            }}>
+              <Typography variant="h6" gutterBottom>
+                No hay transferencias
+              </Typography>
+              <Typography variant="body2">
+                No se encontraron transferencias con los filtros aplicados
+              </Typography>
+            </Box>
+          </Grid>
+        )}
+      </Grid>
 
       {/* Modal de detalles */}
       <Dialog 

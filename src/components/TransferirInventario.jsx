@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import {
-  Paper, Box, Typography, Select, MenuItem, TextField, Button, Snackbar, Alert, Grid, Table, TableHead, TableRow, TableCell, TableBody, IconButton, useTheme, useMediaQuery
+  Paper, Box, Typography, Select, MenuItem, TextField, Button, Table, TableHead, TableRow, TableCell, TableBody, IconButton, useTheme, useMediaQuery,
+  Card, CardContent, CardActions, Grid, Chip, Divider, Snackbar, Alert
 } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
 import { QRCodeSVG } from 'qrcode.react';
@@ -290,48 +291,106 @@ function TransferirInventario({ onTransferencia }) {
                 startIcon={<Add />}
                 onClick={agregarProducto}
                 fullWidth
-                size={isMobile ? "small" : "medium"}
+                size={isMobile ? "large" : "medium"}
               >
-                Agregar
+                Agregar Producto
               </Button>
             </Grid>
           </Grid>
         </Box>
 
-        {/* Tabla de productos agregados */}
+        {/* Tarjetas de productos agregados */}
         {detalleProductos.length > 0 && (
-          <Box sx={{ overflowX: 'auto' }}>
-            <Typography variant="subtitle2" gutterBottom>Productos a Transferir</Typography>
-            <Table size={isMobile ? "small" : "medium"}>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Producto</TableCell>
-                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Cantidad</TableCell>
-                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Precio Unitario</TableCell>
-                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Total</TableCell>
-                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {detalleProductos.map((item, index) => (
-                  <TableRow key={item.id}>
-                    <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>{item.producto_nombre}</TableCell>
-                    <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>{item.cantidad}</TableCell>
-                    <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>${item.precio_unitario.toFixed(2)}</TableCell>
-                    <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>${(item.cantidad * item.precio_unitario).toFixed(2)}</TableCell>
-                    <TableCell>
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Productos a Transferir ({detalleProductos.length})
+            </Typography>
+            <Grid container spacing={isMobile ? 1 : 2}>
+              {detalleProductos.map((item, index) => (
+                <Grid item xs={12} sm={6} md={4} key={item.id}>
+                  <Card 
+                    elevation={2}
+                    sx={{ 
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      '&:hover': {
+                        elevation: 4,
+                        transform: 'translateY(-2px)',
+                        transition: 'all 0.2s ease-in-out'
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ flexGrow: 1, py: 2 }}>
+                      <Typography variant="h6" gutterBottom sx={{ 
+                        fontSize: isMobile ? '0.9rem' : '1rem',
+                        fontWeight: 'bold'
+                      }}>
+                        {item.producto_nombre}
+                      </Typography>
+                      
+                      <Box sx={{ mb: 1 }}>
+                        <Typography variant="caption" color="textSecondary" display="block">
+                          Cantidad
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                          {item.cantidad} unidades
+                        </Typography>
+                      </Box>
+                      
+                      <Box sx={{ mb: 1 }}>
+                        <Typography variant="caption" color="textSecondary" display="block">
+                          Precio Unitario
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                          ${item.precio_unitario.toFixed(2)}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                    
+                    <CardActions sx={{ 
+                      justifyContent: 'space-between', 
+                      px: 2, 
+                      py: 1,
+                      backgroundColor: 'grey.50'
+                    }}>
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" display="block">
+                          Total
+                        </Typography>
+                        <Typography variant="h6" color="primary" sx={{ 
+                          fontSize: isMobile ? '1rem' : '1.25rem',
+                          fontWeight: 'bold'
+                        }}>
+                          ${(item.cantidad * item.precio_unitario).toFixed(2)}
+                        </Typography>
+                      </Box>
                       <IconButton 
-                        size="small" 
                         onClick={() => quitarProducto(index)} 
                         color="error"
+                        size={isMobile ? "small" : "medium"}
+                        title="Eliminar producto"
                       >
                         <Delete fontSize={isMobile ? "small" : "medium"} />
                       </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            
+            {/* Resumen total */}
+            <Box sx={{ 
+              mt: 2, 
+              p: 2, 
+              backgroundColor: 'grey.400', 
+              borderRadius: 1,
+              textAlign: 'center'
+            }}>
+              <Typography variant="h6" color="white" sx={{ fontWeight: 'bold' }}>
+                Total General: ${detalleProductos.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0).toFixed(2)}
+              </Typography>
+            </Box>
           </Box>
         )}
 
@@ -342,6 +401,7 @@ function TransferirInventario({ onTransferencia }) {
           sx={{ mt: 2 }}
           disabled={detalleProductos.length === 0}
           size={isMobile ? "large" : "large"}
+          fullWidth={isMobile}
         >
           Transferir ({detalleProductos.length} productos)
         </Button>

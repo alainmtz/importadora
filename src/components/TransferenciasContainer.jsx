@@ -32,10 +32,13 @@ function TransferenciasContainer() {
           variant={isMobile ? "scrollable" : "fullWidth"}
           scrollButtons={isMobile ? "auto" : false}
           sx={{
+            p: 2,
             '& .MuiTab-root': {
-              fontSize: isMobile ? '0.875rem' : '1rem',
+              fontSize: isMobile ? '0.8rem' : '0.9rem',
               minWidth: isMobile ? 'auto' : 120,
-              padding: isMobile ? '6px 12px' : '12px 16px'
+              padding: isMobile ? '8px 12px' : '12px 16px',
+              textTransform: 'none',
+              fontWeight: isMobile ? 'normal' : 'medium'
             }
           }}
         >
