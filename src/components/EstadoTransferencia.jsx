@@ -2,80 +2,98 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody, Button, Snackbar, Alert, CircularProgress } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+
+// Función para obtener la transferencia y detalles
+const fetchTransferencia = async (id) => {
+  // Obtener transferencia
+  const { data: transferenciaData, error: errorTransf, status } = await supabase
+    .from('transferencias')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (status === 429) {
+    const err = new Error('Rate limit reached');
+    err.status = 429;
+    throw err;
+  }
+  if (errorTransf || !transferenciaData) {
+    throw new Error('No se encontró la transferencia');
+  }
+
+  // Obtener detalles
+  const { data: detallesData, error: errorDetalles, status: statusDetalles } = await supabase
+    .from('detalle_transferencias')
+    .select('*, productos(nombre)')
+    .eq('transferencia_id', id);
+  if (statusDetalles === 429) {
+    const err = new Error('Rate limit reached');
+    err.status = 429;
+    throw err;
+  }
+  if (errorDetalles) {
+    throw new Error('Error al obtener los detalles de la transferencia');
+  }
+
+  return { transferencia: transferenciaData, detalles: detallesData || [] };
+};
 
 function EstadoTransferencia() {
   const { id } = useParams();
-  const [transferencia, setTransferencia] = useState(null);
-  const [detalles, setDetalles] = useState([]);
-  const [usuario, setUsuario] = useState(null);
-  const [responsable, setResponsable] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState('');
   const [userAuth, setUserAuth] = useState(null);
   const [userRoles, setUserRoles] = useState([]);
   const [actualizando, setActualizando] = useState(false);
 
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['transferencia', id],
+    queryFn: () => fetchTransferencia(id),
+    retry: (failureCount, error) => {
+      // Solo reintenta si es un 429 (rate limit)
+      return error?.status === 429 && failureCount < 3;
+    },
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000), // backoff exponencial
+  });
+
   useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      // Obtener transferencia
-      const { data: transferenciaData, error: errorTransf } = await supabase
-        .from('transferencias')
-        .select('*')
-        .eq('id', id)
-        .single();
-      if (errorTransf || !transferenciaData) {
-        setMensaje('No se encontró la transferencia');
-        setLoading(false);
-        return;
+    async function fetchUserAndRoles() {
+      if (data) {
+        // Obtener usuario autenticado
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        const user = userData?.user;
+        setUserAuth(user);
+        if (user) {
+          // Obtener roles del usuario
+          const { data: rolesData, error: rolesError } = await supabase
+            .from('usuario_roles')
+            .select('roles(nombre)')  // o el campo correcto de la tabla roles
+            .eq('user_id', user.id);
+          setUserRoles(rolesData ? rolesData.map(r => r.roles?.nombre) : []);
+          if (!rolesData || rolesData.length === 0) {
+            setMensaje('Tu usuario no tiene roles asignados. Contacta al administrador.');
+          }
+          if (rolesError) {
+            setMensaje('Error al obtener los roles del usuario.');
+          }
+          // Console.log para depurar
+          console.log('Usuario autenticado:', {
+            id: user.id,
+            email: user.email,
+            roles: rolesData ? rolesData.map(r => r.roles?.nombre) : []
+          });
+        } else if (userError) {
+          setMensaje('Error al obtener el usuario autenticado.');
+        }
       }
-      setTransferencia(transferenciaData);
-
-      // Obtener detalles
-      const { data: detallesData } = await supabase
-        .from('detalle_transferencias')
-        .select('*, productos(nombre)')
-        .eq('transferencia_id', id);
-      setDetalles(detallesData || []);
-
-      // Obtener usuario creador
-      const { data: usuarioData } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id', transferenciaData.usuario_id)
-        .single();
-      setUsuario(usuarioData);
-
-      // Obtener usuario responsable (si existe)
-      if (transferenciaData.usuario_responsable_id) {
-        const { data: responsableData } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('id', transferenciaData.usuario_responsable_id)
-          .single();
-        setResponsable(responsableData);
-      } else {
-        setResponsable(null);
-      }
-
-      // Obtener usuario autenticado y sus roles
-      const { data: { user } } = await supabase.auth.getUser();
-      setUserAuth(user);
-      if (user) {
-        // Suponiendo que tienes una tabla roles_usuarios con user_id y rol
-        const { data: rolesData } = await supabase
-          .from('roles_usuarios')
-          .select('rol')
-          .eq('user_id', user.id);
-        setUserRoles(rolesData ? rolesData.map(r => r.rol) : []);
-      }
-      setLoading(false);
     }
-    fetchData();
-  }, [id]);
+    fetchUserAndRoles();
+  }, [data]);
+
+  const transferencia = data?.transferencia;
+  const detalles = data?.detalles || [];
 
   const puedeTransitar = userRoles.includes('transportista') && transferencia && transferencia.estado === 'pendiente';
-  const puedeRecibir = (userRoles.includes('admin') || userRoles.includes('vendedor')) && transferencia && (transferencia.estado === 'pendiente' || transferencia.estado === 'en transito');
+  const puedeRecibir = (userRoles.includes('admin') || userRoles.includes('vendedor') || userRoles.includes('developer')) && transferencia && (transferencia.estado === 'pendiente' || transferencia.estado === 'en transito');
 
   const handleActualizarEstado = async () => {
     setActualizando(true);
@@ -97,18 +115,21 @@ function EstadoTransferencia() {
     } else {
       setMensaje('Estado actualizado correctamente');
       // Refrescar datos
-      setTransferencia({ ...transferencia, estado: nuevoEstado, usuario_responsable_id: userAuth.id });
-      setResponsable(userAuth);
+      // React Query ya maneja la revalidación del cache
     }
     setActualizando(false);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
         <CircularProgress />
       </Box>
     );
+  }
+
+  if (error) {
+    return <Typography color="error">{error.message}</Typography>;
   }
 
   if (!transferencia) {
@@ -122,14 +143,14 @@ function EstadoTransferencia() {
         Estado actual: <b>{transferencia.estado}</b>
       </Typography>
       <Typography variant="body2" gutterBottom>
-        Fecha: {new Date(transferencia.created_at).toLocaleString()}
+        Fecha: {new Date(transferencia.created_at || transferencia.fecha_transferencia).toLocaleString()}
       </Typography>
       <Typography variant="body2" gutterBottom>
-        Usuario que la creó: {usuario ? usuario.nombre || usuario.email || usuario.id : transferencia.usuario_id}
+        Usuario que la creó: {transferencia.usuario_email || transferencia.usuario_id}
       </Typography>
-      {responsable && (
+      {transferencia.usuario_responsable_id && (
         <Typography variant="body2" gutterBottom>
-          Responsable actual: {responsable.nombre || responsable.email || responsable.id}
+          Responsable actual: {transferencia.usuario_responsable_id}
         </Typography>
       )}
       <Box sx={{ mt: 2 }}>
@@ -155,7 +176,7 @@ function EstadoTransferencia() {
           </TableBody>
         </Table>
       </Box>
-      {(puedeTransitar || puedeRecibir) && (
+      {userAuth && (puedeTransitar || puedeRecibir) && (
         <Button
           variant="contained"
           color={puedeTransitar ? 'warning' : 'success'}
@@ -165,6 +186,16 @@ function EstadoTransferencia() {
         >
           {puedeTransitar ? 'Marcar como En Tránsito' : 'Marcar como Recibido'}
         </Button>
+      )}
+      {!userAuth && (
+        <Alert severity="warning" sx={{ mt: 3 }}>
+          Debes iniciar sesión para cambiar el estado de la transferencia.
+        </Alert>
+      )}
+      {userAuth && userRoles.length === 0 && (
+        <Alert severity="warning" sx={{ mt: 3 }}>
+          Tu usuario no tiene roles asignados. Contacta al administrador.
+        </Alert>
       )}
       <Snackbar open={!!mensaje} autoHideDuration={3000} onClose={() => setMensaje('')}>
         <Alert onClose={() => setMensaje('')} severity="info" sx={{ width: '100%' }}>
