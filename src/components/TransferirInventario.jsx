@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import {
-  Paper, Box, Typography, Select, MenuItem, TextField, Button, Snackbar, Alert, Grid, Table, TableHead, TableRow, TableCell, TableBody, IconButton
+  Paper, Box, Typography, Select, MenuItem, TextField, Button, Snackbar, Alert, Grid, Table, TableHead, TableRow, TableCell, TableBody, IconButton, useTheme, useMediaQuery
 } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
 import { QRCodeSVG } from 'qrcode.react';
@@ -22,6 +22,10 @@ function TransferirInventario({ onTransferencia }) {
 
   const [transferenciaCreada, setTransferenciaCreada] = useState(null);
   const [mostrarQR, setMostrarQR] = useState(false);
+
+  // Responsive
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     async function fetchData() {
@@ -176,12 +180,19 @@ function TransferirInventario({ onTransferencia }) {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 3, maxWidth: 800 }}>
-      <Typography variant="h6" gutterBottom>Transferir Inventario</Typography>
+    <Paper elevation={3} sx={{ 
+      p: isMobile ? 2 : 3, 
+      mb: 3, 
+      maxWidth: isMobile ? '100%' : 800,
+      mx: 'auto'
+    }}>
+      <Typography variant={isMobile ? "h6" : "h5"} gutterBottom>
+        Transferir Inventario
+      </Typography>
       
-      <Box component="form" onSubmit={handleTransferir} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box component="form" onSubmit={handleTransferir} sx={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 1.5 : 2 }}>
         {/* Configuración de la transferencia */}
-        <Grid container spacing={2}>
+        <Grid container spacing={isMobile ? 1 : 2}>
           <Grid item xs={12} sm={6}>
             <Select
               value={origenId}
@@ -189,10 +200,13 @@ function TransferirInventario({ onTransferencia }) {
               displayEmpty
               fullWidth
               required
+              size={isMobile ? "small" : "medium"}
             >
               <MenuItem value="">Sucursal Origen</MenuItem>
               {sucursales.map(s => (
-                <MenuItem key={s.id} value={s.id}>{s.nombre} ({s.tipo} - {s.pais})</MenuItem>
+                <MenuItem key={s.id} value={s.id}>
+                  {isMobile ? `${s.nombre}` : `${s.nombre} (${s.tipo} - ${s.pais})`}
+                </MenuItem>
               ))}
             </Select>
           </Grid>
@@ -203,10 +217,13 @@ function TransferirInventario({ onTransferencia }) {
               displayEmpty
               fullWidth
               required
+              size={isMobile ? "small" : "medium"}
             >
               <MenuItem value="">Sucursal Destino</MenuItem>
               {sucursales.map(s => (
-                <MenuItem key={s.id} value={s.id}>{s.nombre} ({s.tipo} - {s.pais})</MenuItem>
+                <MenuItem key={s.id} value={s.id}>
+                  {isMobile ? `${s.nombre}` : `${s.nombre} (${s.tipo} - ${s.pais})`}
+                </MenuItem>
               ))}
             </Select>
           </Grid>
@@ -217,21 +234,27 @@ function TransferirInventario({ onTransferencia }) {
               onChange={e => setObservaciones(e.target.value)}
               fullWidth
               multiline
-              rows={2}
+              rows={isMobile ? 2 : 3}
+              size={isMobile ? "small" : "medium"}
             />
           </Grid>
         </Grid>
 
         {/* Agregar productos */}
-        <Box sx={{ border: '1px solid #ddd', p: 2, borderRadius: 1 }}>
+        <Box sx={{ 
+          border: '1px solid #ddd', 
+          p: isMobile ? 1.5 : 2, 
+          borderRadius: 1 
+        }}>
           <Typography variant="subtitle2" gutterBottom>Agregar Productos</Typography>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={4}>
+          <Grid container spacing={isMobile ? 1 : 2} alignItems="center">
+            <Grid item xs={12} sm={isMobile ? 12 : 4}>
               <Select
                 value={productoSeleccionado}
                 onChange={e => setProductoSeleccionado(e.target.value)}
                 displayEmpty
                 fullWidth
+                size={isMobile ? "small" : "medium"}
               >
                 <MenuItem value="">Seleccione producto</MenuItem>
                 {productos.map(p => (
@@ -239,7 +262,7 @@ function TransferirInventario({ onTransferencia }) {
                 ))}
               </Select>
             </Grid>
-            <Grid item xs={12} sm={2}>
+            <Grid item xs={6} sm={isMobile ? 6 : 2}>
               <TextField
                 type="number"
                 label="Cantidad"
@@ -247,9 +270,10 @@ function TransferirInventario({ onTransferencia }) {
                 value={cantidad}
                 onChange={e => setCantidad(Number(e.target.value))}
                 fullWidth
+                size={isMobile ? "small" : "medium"}
               />
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={6} sm={isMobile ? 6 : 3}>
               <TextField
                 label="Precio unitario"
                 type="number"
@@ -257,14 +281,16 @@ function TransferirInventario({ onTransferencia }) {
                 onChange={e => setPrecioUnitario(e.target.value)}
                 inputProps={{ min: 0, step: "0.01" }}
                 fullWidth
+                size={isMobile ? "small" : "medium"}
               />
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={isMobile ? 12 : 3}>
               <Button
                 variant="outlined"
                 startIcon={<Add />}
                 onClick={agregarProducto}
                 fullWidth
+                size={isMobile ? "small" : "medium"}
               >
                 Agregar
               </Button>
@@ -274,28 +300,32 @@ function TransferirInventario({ onTransferencia }) {
 
         {/* Tabla de productos agregados */}
         {detalleProductos.length > 0 && (
-          <Box>
+          <Box sx={{ overflowX: 'auto' }}>
             <Typography variant="subtitle2" gutterBottom>Productos a Transferir</Typography>
-            <Table size="small">
+            <Table size={isMobile ? "small" : "medium"}>
               <TableHead>
                 <TableRow>
-                  <TableCell>Producto</TableCell>
-                  <TableCell>Cantidad</TableCell>
-                  <TableCell>Precio Unitario</TableCell>
-                  <TableCell>Total</TableCell>
-                  <TableCell>Acciones</TableCell>
+                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Producto</TableCell>
+                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Cantidad</TableCell>
+                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Precio Unitario</TableCell>
+                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Total</TableCell>
+                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {detalleProductos.map((item, index) => (
                   <TableRow key={item.id}>
-                    <TableCell>{item.producto_nombre}</TableCell>
-                    <TableCell>{item.cantidad}</TableCell>
-                    <TableCell>${item.precio_unitario.toFixed(2)}</TableCell>
-                    <TableCell>${(item.cantidad * item.precio_unitario).toFixed(2)}</TableCell>
+                    <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>{item.producto_nombre}</TableCell>
+                    <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>{item.cantidad}</TableCell>
+                    <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>${item.precio_unitario.toFixed(2)}</TableCell>
+                    <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>${(item.cantidad * item.precio_unitario).toFixed(2)}</TableCell>
                     <TableCell>
-                      <IconButton size="small" onClick={() => quitarProducto(index)} color="error">
-                        <Delete />
+                      <IconButton 
+                        size="small" 
+                        onClick={() => quitarProducto(index)} 
+                        color="error"
+                      >
+                        <Delete fontSize={isMobile ? "small" : "medium"} />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -311,6 +341,7 @@ function TransferirInventario({ onTransferencia }) {
           color="primary" 
           sx={{ mt: 2 }}
           disabled={detalleProductos.length === 0}
+          size={isMobile ? "large" : "large"}
         >
           Transferir ({detalleProductos.length} productos)
         </Button>
@@ -323,11 +354,11 @@ function TransferirInventario({ onTransferencia }) {
           </Typography>
           <QRCodeSVG
             value={transferenciaCreada}
-            size={256}
+            size={isMobile ? 200 : 256}
             level="H"
             includeMargin={true}
           />
-          <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+          <Typography variant="caption" sx={{ mt: 1, display: 'block', wordBreak: 'break-all' }}>
             {transferenciaCreada}
           </Typography>
         </Box>

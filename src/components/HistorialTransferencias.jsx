@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import {
   Paper, Box, Typography, Select, MenuItem, TextField, Button, Table, TableHead, TableRow, TableCell, TableBody,
-  Snackbar, Alert, Grid, InputLabel, FormControl, Chip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions
+  Snackbar, Alert, Grid, InputLabel, FormControl, Chip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, useTheme, useMediaQuery
 } from '@mui/material';
 import { Visibility, Edit, Download } from '@mui/icons-material';
 import jsPDF from 'jspdf';
@@ -26,6 +26,10 @@ function HistorialTransferencias() {
   const [detalleTransferencia, setDetalleTransferencia] = useState([]);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrTransferId, setQrTransferId] = useState(null);
+
+  // Responsive
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     fetchSucursales();
@@ -203,202 +207,235 @@ function HistorialTransferencias() {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
-      <Box sx={{maxWidth: 800, mx: 'auto', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6">Historial de Transferencias</Typography>
-        <Button
-          variant="outlined"
-          startIcon={<Download />}
-          onClick={exportarPDF}
-          disabled={transferencias.length === 0}
-        >
-          Exportar PDF
-        </Button>
-      </Box>
+    <Paper elevation={3} sx={{ 
+      p: isMobile ? 2 : 3, 
+      mb: 3, 
+      maxWidth: isMobile ? '100%' : 1200,
+      mx: 'auto'
+    }}>
+      <Typography variant={isMobile ? "h6" : "h5"} gutterBottom>
+        Historial de Transferencias
+      </Typography>
       
       {/* Filtros */}
       <Box sx={{ mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={2}>
-            <FormControl fullWidth>
+        <Typography variant="subtitle2" gutterBottom>Filtros</Typography>
+        <Grid container spacing={isMobile ? 1 : 2}>
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth size={isMobile ? "small" : "medium"}>
               <InputLabel>Sucursal Origen</InputLabel>
               <Select
                 value={filtros.sucursalOrigen}
+                onChange={(e) => setFiltros({...filtros, sucursalOrigen: e.target.value})}
                 label="Sucursal Origen"
-                onChange={e => setFiltros({...filtros, sucursalOrigen: e.target.value})}
               >
                 <MenuItem value="">Todas</MenuItem>
                 {sucursales.map(s => (
-                  <MenuItem key={s.id} value={s.id}>{s.nombre}</MenuItem>
+                  <MenuItem key={s.id} value={s.id}>
+                    {isMobile ? s.nombre : `${s.nombre} (${s.tipo})`}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={2}>
-            <FormControl fullWidth>
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth size={isMobile ? "small" : "medium"}>
               <InputLabel>Sucursal Destino</InputLabel>
               <Select
                 value={filtros.sucursalDestino}
+                onChange={(e) => setFiltros({...filtros, sucursalDestino: e.target.value})}
                 label="Sucursal Destino"
-                onChange={e => setFiltros({...filtros, sucursalDestino: e.target.value})}
               >
                 <MenuItem value="">Todas</MenuItem>
                 {sucursales.map(s => (
-                  <MenuItem key={s.id} value={s.id}>{s.nombre}</MenuItem>
+                  <MenuItem key={s.id} value={s.id}>
+                    {isMobile ? s.nombre : `${s.nombre} (${s.tipo})`}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={2}>
-            <FormControl fullWidth>
+          <Grid item xs={12} sm={6} md={2}>
+            <FormControl fullWidth size={isMobile ? "small" : "medium"}>
               <InputLabel>Estado</InputLabel>
               <Select
                 value={filtros.estado}
+                onChange={(e) => setFiltros({...filtros, estado: e.target.value})}
                 label="Estado"
-                onChange={e => setFiltros({...filtros, estado: e.target.value})}
               >
                 <MenuItem value="">Todos</MenuItem>
                 <MenuItem value="pendiente">Pendiente</MenuItem>
+                <MenuItem value="en transito">En Tránsito</MenuItem>
+                <MenuItem value="recibido">Recibido</MenuItem>
                 <MenuItem value="completada">Completada</MenuItem>
-                <MenuItem value="cancelada">Cancelada</MenuItem>
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6} sm={2}>
+          <Grid item xs={12} sm={6} md={2}>
             <TextField
-              label="Desde"
+              label="Usuario"
+              value={filtros.usuario}
+              onChange={(e) => setFiltros({...filtros, usuario: e.target.value})}
+              fullWidth
+              size={isMobile ? "small" : "medium"}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <TextField
+              label="Observaciones"
+              value={filtros.observaciones}
+              onChange={(e) => setFiltros({...filtros, observaciones: e.target.value})}
+              fullWidth
+              size={isMobile ? "small" : "medium"}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <TextField
+              label="Fecha Inicio"
               type="date"
               value={filtros.fechaInicio}
-              onChange={e => setFiltros({...filtros, fechaInicio: e.target.value})}
-              InputLabelProps={{ shrink: true }}
+              onChange={(e) => setFiltros({...filtros, fechaInicio: e.target.value})}
               fullWidth
+              size={isMobile ? "small" : "medium"}
+              InputLabelProps={{ shrink: true }}
             />
           </Grid>
-          <Grid item xs={6} sm={2}>
+          <Grid item xs={12} sm={6} md={2}>
             <TextField
-              label="Hasta"
+              label="Fecha Fin"
               type="date"
               value={filtros.fechaFin}
-              onChange={e => setFiltros({...filtros, fechaFin: e.target.value})}
-              InputLabelProps={{ shrink: true }}
+              onChange={(e) => setFiltros({...filtros, fechaFin: e.target.value})}
               fullWidth
+              size={isMobile ? "small" : "medium"}
+              InputLabelProps={{ shrink: true }}
             />
-          </Grid>
-          <Grid item xs={12} sm={2}>
-            <Button variant="contained" onClick={fetchTransferencias} fullWidth>
-              Filtrar
-            </Button>
           </Grid>
         </Grid>
         
-        {/* Filtros adicionales */}
-        <Grid container spacing={2} alignItems="center" sx={{ mt: 1 }}>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="Buscar por usuario"
-              value={filtros.usuario}
-              onChange={e => setFiltros({...filtros, usuario: e.target.value})}
-              fullWidth
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="Buscar en observaciones"
-              value={filtros.observaciones}
-              onChange={e => setFiltros({...filtros, observaciones: e.target.value})}
-              fullWidth
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Button variant="outlined" onClick={limpiarFiltros} fullWidth>
-              Limpiar Filtros
-            </Button>
-          </Grid>
-        </Grid>
+        <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Button 
+            variant="contained" 
+            onClick={fetchTransferencias}
+            size={isMobile ? "small" : "medium"}
+          >
+            Filtrar
+          </Button>
+          <Button 
+            variant="outlined" 
+            onClick={limpiarFiltros}
+            size={isMobile ? "small" : "medium"}
+          >
+            Limpiar
+          </Button>
+          <Button 
+            variant="outlined" 
+            startIcon={<Download />}
+            onClick={exportarPDF}
+            size={isMobile ? "small" : "medium"}
+          >
+            {isMobile ? "PDF" : "Exportar PDF"}
+          </Button>
+        </Box>
       </Box>
 
-      {/* Tabla de transferencias */}
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Fecha</TableCell>
-            <TableCell>Origen</TableCell>
-            <TableCell>Destino</TableCell>
-            <TableCell>Usuario</TableCell>
-            <TableCell>Estado</TableCell>
-            <TableCell>Observaciones</TableCell>
-            <TableCell>Acciones</TableCell>
-            <TableCell>QR</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {transferencias.map((t) => (
-            <TableRow key={t.id} hover>
-              <TableCell>
-                {new Date(t.fecha_transferencia || t.created_at).toLocaleString()}
-              </TableCell>
-              <TableCell>{t.sucursal_origen?.nombre}</TableCell>
-              <TableCell>{t.sucursal_destino?.nombre}</TableCell>
-              <TableCell>{t.usuario?.email}</TableCell>
-              <TableCell>
-                <Chip 
-                  label={t.estado} 
-                  color={getEstadoColor(t.estado)}
-                  size="small"
-                />
-              </TableCell>
-              <TableCell>{t.observaciones}</TableCell>
-              <TableCell>
-                <IconButton size="small" onClick={() => verDetalle(t.id)}>
-                  <Visibility />
-                </IconButton>
-                {t.estado === 'pendiente' && (
-                  <IconButton size="small" onClick={() => cambiarEstado(t.id, 'completada')}>
-                    <Edit />
-                  </IconButton>
-                )}
-              </TableCell>
-              <TableCell>
-                {t.estado !== 'completada' && (
-                  <Button size="small" variant="outlined" onClick={() => { setQrTransferId(t.id); setQrDialogOpen(true); }}>
-                    Ver QR
-                  </Button>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-          {transferencias.length === 0 && (
+      {/* Tabla */}
+      <Box sx={{ overflowX: 'auto' }}>
+        <Table size={isMobile ? "small" : "medium"}>
+          <TableHead>
             <TableRow>
-              <TableCell colSpan={8} align="center">Sin transferencias</TableCell>
+              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Fecha</TableCell>
+              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Origen</TableCell>
+              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Destino</TableCell>
+              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Usuario</TableCell>
+              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Estado</TableCell>
+              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Observaciones</TableCell>
+              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Acciones</TableCell>
+              <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>QR</TableCell>
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {transferencias.map((t) => (
+              <TableRow key={t.id} hover>
+                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                  {new Date(t.fecha_transferencia || t.created_at).toLocaleString()}
+                </TableCell>
+                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                  {isMobile ? t.sucursal_origen?.nombre?.split(' ')[0] : t.sucursal_origen?.nombre}
+                </TableCell>
+                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                  {isMobile ? t.sucursal_destino?.nombre?.split(' ')[0] : t.sucursal_destino?.nombre}
+                </TableCell>
+                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                  {isMobile ? t.usuario?.email?.split('@')[0] : t.usuario?.email}
+                </TableCell>
+                <TableCell>
+                  <Chip 
+                    label={t.estado} 
+                    color={getEstadoColor(t.estado)} 
+                    size={isMobile ? "small" : "medium"}
+                    sx={{ fontSize: isMobile ? '0.7rem' : '0.75rem' }}
+                  />
+                </TableCell>
+                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                  {isMobile ? (t.observaciones || '-').substring(0, 20) + '...' : t.observaciones || '-'}
+                </TableCell>
+                <TableCell>
+                  <IconButton 
+                    onClick={() => verDetalle(t.id)}
+                    size={isMobile ? "small" : "medium"}
+                  >
+                    <Visibility fontSize={isMobile ? "small" : "medium"} />
+                  </IconButton>
+                </TableCell>
+                <TableCell>
+                  {t.estado !== 'completada' && (
+                    <Button 
+                      size="small" 
+                      variant="outlined" 
+                      onClick={() => { setQrTransferId(t.id); setQrDialogOpen(true); }}
+                      sx={{ fontSize: isMobile ? '0.7rem' : '0.75rem' }}
+                    >
+                      {isMobile ? "QR" : "Ver QR"}
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+            {transferencias.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={8} align="center">Sin transferencias</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Box>
 
       {/* Modal de detalles */}
-      <Dialog open={!!detalleAbierto} onClose={() => setDetalleAbierto(null)} maxWidth="md" fullWidth>
-        <DialogTitle>Detalles de la Transferencia</DialogTitle>
+      <Dialog 
+        open={!!detalleAbierto} 
+        onClose={() => setDetalleAbierto(null)}
+        maxWidth={isMobile ? "xs" : "md"}
+        fullWidth
+      >
+        <DialogTitle>Detalles de Transferencia</DialogTitle>
         <DialogContent>
-          <Table size="small">
+          <Table size={isMobile ? "small" : "medium"}>
             <TableHead>
               <TableRow>
                 <TableCell>Producto</TableCell>
-                <TableCell>Código</TableCell>
                 <TableCell>Cantidad</TableCell>
                 <TableCell>Precio Unitario</TableCell>
                 <TableCell>Total</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {detalleTransferencia.map((d) => (
-                <TableRow key={d.id}>
-                  <TableCell>{d.producto?.nombre}</TableCell>
-                  <TableCell>{d.producto?.codigo}</TableCell>
-                  <TableCell>{d.cantidad}</TableCell>
-                  <TableCell>${d.precio_unitario?.toFixed(2)}</TableCell>
-                  <TableCell>${(d.cantidad * d.precio_unitario)?.toFixed(2)}</TableCell>
+              {detalleTransferencia.map((item, idx) => (
+                <TableRow key={idx}>
+                  <TableCell>{item.producto?.nombre || item.producto_id}</TableCell>
+                  <TableCell>{item.cantidad}</TableCell>
+                  <TableCell>${item.precio_unitario?.toFixed(2)}</TableCell>
+                  <TableCell>${(item.cantidad * item.precio_unitario).toFixed(2)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -410,18 +447,23 @@ function HistorialTransferencias() {
       </Dialog>
 
       {/* Modal de QR */}
-      <Dialog open={qrDialogOpen} onClose={() => setQrDialogOpen(false)}>
+      <Dialog 
+        open={qrDialogOpen} 
+        onClose={() => setQrDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>QR de Transferencia</DialogTitle>
         <DialogContent sx={{ textAlign: 'center' }}>
           {qrTransferId && (
             <>
               <QRCodeSVG
                 value={`${window.location.origin}/transferencia/${qrTransferId}`}
-                size={256}
+                size={isMobile ? 200 : 256}
                 level="H"
                 includeMargin={true}
               />
-              <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+              <Typography variant="caption" sx={{ mt: 1, display: 'block', wordBreak: 'break-all' }}>
                 {`${window.location.origin}/transferencia/${qrTransferId}`}
               </Typography>
             </>

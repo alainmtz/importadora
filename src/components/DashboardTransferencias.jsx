@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import {
   Paper, Box, Typography, Grid, Card, CardContent, LinearProgress,
-  Table, TableHead, TableRow, TableCell, TableBody, Chip, Button
+  Table, TableHead, TableRow, TableCell, TableBody, Chip, Button, useTheme, useMediaQuery
 } from '@mui/material';
 import {
   TrendingUp, TrendingDown, PendingActions, CheckCircle,
@@ -19,6 +19,10 @@ function DashboardTransferencias() {
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Responsive
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     fetchStats();
@@ -103,16 +107,23 @@ function DashboardTransferencias() {
 
   if (loading) {
     return (
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: isMobile ? 2 : 3 }}>
         <LinearProgress />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
+    <Box sx={{ p: isMobile ? 2 : 3 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: isMobile ? 'column' : 'row',
+        justifyContent: 'space-between', 
+        alignItems: isMobile ? 'flex-start' : 'center', 
+        mb: 4,
+        gap: isMobile ? 2 : 0
+      }}>
+        <Typography variant={isMobile ? "h5" : "h4"} gutterBottom>
           Dashboard de Transferencias
         </Typography>
         <Button
@@ -120,160 +131,153 @@ function DashboardTransferencias() {
           startIcon={<Refresh />}
           onClick={handleRefresh}
           disabled={refreshing}
+          size={isMobile ? "small" : "medium"}
         >
           {refreshing ? 'Actualizando...' : 'Actualizar'}
         </Button>
       </Box>
 
       {/* Tarjetas de estadísticas */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: 4 }}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
-            <CardContent>
+            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
-                  <Typography color="textSecondary" gutterBottom>
+                  <Typography color="textSecondary" gutterBottom sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
                     Total Transferencias
                   </Typography>
-                  <Typography variant="h4">
+                  <Typography variant={isMobile ? "h5" : "h4"}>
                     {stats.total}
                   </Typography>
                 </Box>
-                <Timeline color="primary" sx={{ fontSize: 40 }} />
+                <Timeline color="primary" sx={{ fontSize: isMobile ? 30 : 40 }} />
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
-            <CardContent>
+            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
-                  <Typography color="textSecondary" gutterBottom>
+                  <Typography color="textSecondary" gutterBottom sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
                     Completadas
                   </Typography>
-                  <Typography variant="h4" color="success.main">
+                  <Typography variant={isMobile ? "h5" : "h4"} color="success.main">
                     {stats.completadas}
                   </Typography>
                 </Box>
-                <CheckCircle color="success" sx={{ fontSize: 40 }} />
+                <CheckCircle color="success" sx={{ fontSize: isMobile ? 30 : 40 }} />
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
-            <CardContent>
+            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
-                  <Typography color="textSecondary" gutterBottom>
+                  <Typography color="textSecondary" gutterBottom sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
                     Pendientes
                   </Typography>
-                  <Typography variant="h4" color="warning.main">
+                  <Typography variant={isMobile ? "h5" : "h4"} color="warning.main">
                     {stats.pendientes}
                   </Typography>
                 </Box>
-                <PendingActions color="warning" sx={{ fontSize: 40 }} />
+                <PendingActions color="warning" sx={{ fontSize: isMobile ? 30 : 40 }} />
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card>
-            <CardContent>
+            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
-                  <Typography color="textSecondary" gutterBottom>
+                  <Typography color="textSecondary" gutterBottom sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
                     Canceladas
                   </Typography>
-                  <Typography variant="h4" color="error.main">
+                  <Typography variant={isMobile ? "h5" : "h4"} color="error.main">
                     {stats.canceladas}
                   </Typography>
                 </Box>
-                <Cancel color="error" sx={{ fontSize: 40 }} />
+                <Cancel color="error" sx={{ fontSize: isMobile ? 30 : 40 }} />
               </Box>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
-      {/* Progreso de estados */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      {/* Barras de progreso */}
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: 4 }}>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Distribución por Estado
+          <Paper sx={{ p: isMobile ? 2 : 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1rem' : '1.25rem' }}>
+              Distribución de Estados
             </Typography>
-            
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mt: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2">Completadas</Typography>
                 <Typography variant="body2">{getPorcentaje(stats.completadas, stats.total)}%</Typography>
               </Box>
               <LinearProgress 
                 variant="determinate" 
-                value={getPorcentaje(stats.completadas, stats.total)}
+                value={getPorcentaje(stats.completadas, stats.total)} 
                 color="success"
-                sx={{ height: 8, borderRadius: 4 }}
+                sx={{ height: isMobile ? 6 : 8, mb: 2 }}
               />
-            </Box>
-
-            <Box sx={{ mb: 2 }}>
+              
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2">Pendientes</Typography>
                 <Typography variant="body2">{getPorcentaje(stats.pendientes, stats.total)}%</Typography>
               </Box>
               <LinearProgress 
                 variant="determinate" 
-                value={getPorcentaje(stats.pendientes, stats.total)}
+                value={getPorcentaje(stats.pendientes, stats.total)} 
                 color="warning"
-                sx={{ height: 8, borderRadius: 4 }}
+                sx={{ height: isMobile ? 6 : 8, mb: 2 }}
               />
-            </Box>
-
-            <Box sx={{ mb: 2 }}>
+              
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2">Canceladas</Typography>
                 <Typography variant="body2">{getPorcentaje(stats.canceladas, stats.total)}%</Typography>
               </Box>
               <LinearProgress 
                 variant="determinate" 
-                value={getPorcentaje(stats.canceladas, stats.total)}
+                value={getPorcentaje(stats.canceladas, stats.total)} 
                 color="error"
-                sx={{ height: 8, borderRadius: 4 }}
+                sx={{ height: isMobile ? 6 : 8 }}
               />
             </Box>
           </Paper>
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Métricas Rápidas
+          <Paper sx={{ p: isMobile ? 2 : 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1rem' : '1.25rem' }}>
+              Resumen Rápido
             </Typography>
-            
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="body1">Tasa de Completación</Typography>
-                <Typography variant="h6" color="success.main">
+            <Box sx={{ mt: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2">Tasa de Completación</Typography>
+                <Typography variant="body2" color="success.main">
                   {getPorcentaje(stats.completadas, stats.total)}%
                 </Typography>
               </Box>
-              
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="body1">Tasa de Cancelación</Typography>
-                <Typography variant="h6" color="error.main">
-                  {getPorcentaje(stats.canceladas, stats.total)}%
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2">Pendientes por Atender</Typography>
+                <Typography variant="body2" color="warning.main">
+                  {stats.pendientes}
                 </Typography>
               </Box>
-              
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="body1">Pendientes por Atender</Typography>
-                <Typography variant="h6" color="warning.main">
-                  {stats.pendientes}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2">Tasa de Cancelación</Typography>
+                <Typography variant="body2" color="error.main">
+                  {getPorcentaje(stats.canceladas, stats.total)}%
                 </Typography>
               </Box>
             </Box>
@@ -282,48 +286,54 @@ function DashboardTransferencias() {
       </Grid>
 
       {/* Transferencias recientes */}
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
+      <Paper sx={{ p: isMobile ? 2 : 3 }}>
+        <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1rem' : '1.25rem' }}>
           Transferencias Recientes
         </Typography>
-        
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Fecha</TableCell>
-              <TableCell>Origen</TableCell>
-              <TableCell>Destino</TableCell>
-              <TableCell>Usuario</TableCell>
-              <TableCell>Estado</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {stats.transferenciasRecientes.map((t) => (
-              <TableRow key={t.id} hover>
-                <TableCell>
-                  {new Date(t.fecha_transferencia).toLocaleDateString()}
-                </TableCell>
-                <TableCell>{t.sucursal_origen?.nombre}</TableCell>
-                <TableCell>{t.sucursal_destino?.nombre}</TableCell>
-                <TableCell>{t.usuario?.email}</TableCell>
-                <TableCell>
-                  <Chip 
-                    label={t.estado} 
-                    color={getEstadoColor(t.estado)}
-                    size="small"
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-            {stats.transferenciasRecientes.length === 0 && (
+        <Box sx={{ overflowX: 'auto' }}>
+          <Table size={isMobile ? "small" : "medium"}>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={5} align="center">
-                  No hay transferencias recientes
-                </TableCell>
+                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Fecha</TableCell>
+                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Origen</TableCell>
+                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Destino</TableCell>
+                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Usuario</TableCell>
+                <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>Estado</TableCell>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {stats.transferenciasRecientes.map((t) => (
+                <TableRow key={t.id} hover>
+                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                    {new Date(t.fecha_transferencia || t.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                    {isMobile ? t.sucursal_origen?.nombre?.split(' ')[0] : t.sucursal_origen?.nombre}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                    {isMobile ? t.sucursal_destino?.nombre?.split(' ')[0] : t.sucursal_destino?.nombre}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+                    {isMobile ? t.usuario?.email?.split('@')[0] : t.usuario?.email}
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={t.estado} 
+                      color={getEstadoColor(t.estado)} 
+                      size={isMobile ? "small" : "medium"}
+                      sx={{ fontSize: isMobile ? '0.7rem' : '0.75rem' }}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+              {stats.transferenciasRecientes.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">No hay transferencias recientes</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </Box>
       </Paper>
     </Box>
   );
