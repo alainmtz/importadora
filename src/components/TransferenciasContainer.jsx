@@ -12,7 +12,7 @@ function TransferenciasContainer() {
   };
 
   return (
-    <Box sx={{ width: '100%' , backgroundColor: 'white' }}>
+    <Box sx={{ p: 2, maxWidth: 800, mx: 'auto' , backgroundColor: 'white' }}>
       <Paper sx={{ p: 2, maxWidth: 800, mx: 'auto' }}>
         <Tabs value={tabValue} onChange={handleTabChange} aria-label="transferencias tabs">
           <Tab label="Crear Transferencia" />
