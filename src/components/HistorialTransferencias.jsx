@@ -204,7 +204,7 @@ function HistorialTransferencias() {
 
   return (
     <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
-      <Box sx={{maxWidth: 800, mx: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{maxWidth: 800, mx: 'auto', alignItems: 'center', mb: 3 }}>
         <Typography variant="h6">Historial de Transferencias</Typography>
         <Button
           variant="outlined"
