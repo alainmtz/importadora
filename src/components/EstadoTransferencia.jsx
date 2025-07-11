@@ -107,7 +107,7 @@ function EstadoTransferencia() {
       .from('transferencias')
       .update({
         estado: nuevoEstado,
-        usuario_responsable_id: userAuth.id
+        usuario_id: userAuth.id
       })
       .eq('id', transferencia.id);
     if (error) {
