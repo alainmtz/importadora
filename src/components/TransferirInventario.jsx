@@ -129,41 +129,6 @@ function TransferirInventario({ onTransferencia }) {
         return;
       }
 
-      // Actualizar inventario para cada producto
-      for (const item of detalleProductos) {
-        // Restar en origen
-        const { data: invOrigen } = await supabase
-          .from('inventario')
-          .select('*')
-          .eq('producto_id', item.producto_id)
-          .eq('sucursal_id', origenId);
-
-        if (invOrigen && invOrigen.length > 0) {
-          await supabase
-            .from('inventario')
-            .update({ cantidad: invOrigen[0].cantidad - item.cantidad })
-            .eq('id', invOrigen[0].id);
-        }
-
-        // Sumar en destino
-        const { data: invDestino } = await supabase
-          .from('inventario')
-          .select('*')
-          .eq('producto_id', item.producto_id)
-          .eq('sucursal_id', destinoId);
-
-        if (invDestino && invDestino.length > 0) {
-          await supabase
-            .from('inventario')
-            .update({ cantidad: invDestino[0].cantidad + item.cantidad })
-            .eq('id', invDestino[0].id);
-        } else {
-          await supabase
-            .from('inventario')
-            .insert([{ producto_id: item.producto_id, sucursal_id: destinoId, cantidad: item.cantidad }]);
-        }
-      }
-
       // Prepara los datos para el QR
       const enlaceQR = `${window.location.origin}/transferencia/${transferencia.id}`;
       setTransferenciaCreada(enlaceQR);

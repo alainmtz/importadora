@@ -112,12 +112,49 @@ function EstadoTransferencia() {
       .eq('id', transferencia.id);
     if (error) {
       setMensaje('Error al actualizar el estado');
-    } else {
-      setMensaje('Estado actualizado correctamente');
-      // Refrescar datos
-      // React Query ya maneja la revalidación del cache
+      setActualizando(false);
+      return;
     }
+
+    // --- Lógica de inventario al recibir transferencia ---
+    if (nuevoEstado === 'recibido') {
+      // Por cada producto en la transferencia
+      for (const item of detalles) {
+        // Restar en origen
+        const { data: invOrigen } = await supabase
+          .from('inventario')
+          .select('*')
+          .eq('producto_id', item.producto_id)
+          .eq('sucursal_id', transferencia.sucursal_origen_id);
+        if (invOrigen && invOrigen.length > 0) {
+          await supabase
+            .from('inventario')
+            .update({ cantidad: invOrigen[0].cantidad - item.cantidad })
+            .eq('id', invOrigen[0].id);
+        }
+        // Sumar en destino
+        const { data: invDestino } = await supabase
+          .from('inventario')
+          .select('*')
+          .eq('producto_id', item.producto_id)
+          .eq('sucursal_id', transferencia.sucursal_destino_id);
+        if (invDestino && invDestino.length > 0) {
+          await supabase
+            .from('inventario')
+            .update({ cantidad: invDestino[0].cantidad + item.cantidad })
+            .eq('id', invDestino[0].id);
+        } else {
+          await supabase
+            .from('inventario')
+            .insert([{ producto_id: item.producto_id, sucursal_id: transferencia.sucursal_destino_id, cantidad: item.cantidad }]);
+        }
+      }
+    }
+    // --- Fin lógica de inventario ---
+
+    setMensaje('Estado actualizado correctamente');
     setActualizando(false);
+    // React Query ya maneja la revalidación del cache
   };
 
   if (isLoading) {
