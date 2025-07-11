@@ -7,12 +7,14 @@ import {
 } from '@mui/material';
 import { Notifications, CheckCircle, Cancel } from '@mui/icons-material';
 import { useUserRoles } from '../hooks/useUserRoles';
+import { useNavigate } from 'react-router-dom';
 
 function NotificacionesTransferencias() {
   const [transferenciasPendientes, setTransferenciasPendientes] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const { roles, loading: loadingRoles } = useUserRoles();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTransferenciasPendientes();
@@ -52,17 +54,10 @@ function NotificacionesTransferencias() {
     }
   };
 
-  const cambiarEstado = async (transferenciaId, nuevoEstado) => {
-    setLoading(true);
-    const { error } = await supabase
-      .from('transferencias')
-      .update({ estado: nuevoEstado })
-      .eq('id', transferenciaId);
-
-    if (!error) {
-      await fetchTransferenciasPendientes();
-    }
-    setLoading(false);
+  // Redirigir a la pantalla de detalle para aprobar correctamente
+  const redirigirAprobar = (transferenciaId) => {
+    setOpenDialog(false);
+    navigate(`/transferencia/${transferenciaId}`);
   };
 
   const cantidadPendientes = transferenciasPendientes.length;
@@ -136,7 +131,7 @@ function NotificacionesTransferencias() {
                           variant="outlined"
                           color="success"
                           startIcon={<CheckCircle />}
-                          onClick={() => cambiarEstado(t.id, 'completada')}
+                          onClick={() => redirigirAprobar(t.id)}
                           disabled={loading}
                         >
                           Aprobar
